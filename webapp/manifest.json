@@ -1,0 +1,175 @@
+{
+    "_version": "1.37.0",
+    "sap.app": {
+        "id": "br.com.challenge.monitor.challengemonitor",
+        "type": "application",
+        "i18n": "i18n/i18n.properties",
+        "applicationVersion": {
+            "version": "0.0.1"
+        },
+        "title": "{{appTitle}}",
+        "description": "{{appDescription}}",
+        "resources": "resources.json",
+        "sourceTemplate": {
+            "id": "@sap/generator-fiori:basic",
+            "version": "1.11.0",
+            "toolsId": "9143d447-f874-415c-8d6b-e39a9315ce50"
+        },
+        "dataSources": {
+            "mainService": {
+                "uri": "/sap/opu/odata/sap/ZRFSFBPMONITORCHALLENGE_SRV/",
+                "type": "OData",
+                "settings": {
+                    "annotations": [
+                        "mainService_Annotation"
+                    ],
+                    "localUri": "localService/metadata.xml",
+                    "odataVersion": "2.0"
+                }
+            },
+            "mainService_Annotation": {
+                "uri": "/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZRFSFBPCHALLENGE_ANNO_MDL',Version='0001')/$value/",
+                "type": "ODataAnnotation",
+                "settings": {
+                    "localUri": "localService/mainService_Annotation.xml"
+                }
+            }
+        }
+    },
+    "sap.ui": {
+        "technology": "UI5",
+        "icons": {
+            "icon": "",
+            "favIcon": "",
+            "phone": "",
+            "phone@2": "",
+            "tablet": "",
+            "tablet@2": ""
+        },
+        "deviceTypes": {
+            "desktop": true,
+            "tablet": true,
+            "phone": true
+        },
+        "fullWidth": true
+    },
+    "sap.ui5": {
+        "flexEnabled": true,
+        "dependencies": {
+            "minUI5Version": "1.96.6",
+            "libs": {
+                "sap.m": {},
+                "sap.ui.core": {},
+                "sap.f": {},
+                "sap.suite.ui.generic.template": {},
+                "sap.ui.comp": {},
+                "sap.ui.generic.app": {},
+                "sap.ui.table": {},
+                "sap.ushell": {}
+            }
+        },
+        "contentDensities": {
+            "compact": true,
+            "cozy": true
+        },
+        "models": {
+            "i18n": {
+                "type": "sap.ui.model.resource.ResourceModel",
+                "settings": {
+                    "bundleName": "br.com.challenge.monitor.challengemonitor.i18n.i18n"
+                }
+            },
+            "": {
+                "dataSource": "mainService",
+                "preload": true,
+                "settings": {
+                    "useBatch": true,
+                    "defaultBindingMode": "TwoWay"
+                }
+            }
+        },
+        "resources": {
+            "css": [
+                {
+                    "uri": "css/style.css"
+                }
+            ]
+        },
+        "routing": {
+            "config": {
+                "routerClass": "sap.m.routing.Router",
+                "viewType": "XML",
+                "async": true,
+                "viewPath": "br.com.challenge.monitor.challengemonitor.view",
+                "transition": "slide",
+                "controlId": "layout",
+                "bypassed": {
+                    "target": [
+                        "notFound"
+                    ]
+                }
+            },
+            "routes": [
+                {
+                    "name": "List",
+                    "pattern": "",
+                    "target": [
+                        "list"
+                    ]
+                },
+                {
+                    "name": "Details",
+                    "pattern": "details/{SHIPPING_REQUEST_ID}",
+                    "target": [
+                        "list",
+                        "details"
+                    ]
+                },
+                {
+                    "name": "PickTaskDetail",
+                    "pattern": "details/{SHIPPING_REQUEST_ID}/picktaskdetail/{DELIVERY_NR}/{DELIVERY_ITEM_NR}/{MATERIAL_NR}/{STATUS}",
+                    "target": [
+                        "list",
+                        "details",
+                        "picktaskdetail"
+                    ]
+                },
+                {
+                    "name": "Scan",
+                    "pattern": "",
+                    "target": [
+                        "scan"
+                    ]
+                }
+            ],
+            "targets": {
+                "list": {
+                    "viewId": "list",
+                    "viewName": "List",
+                    "controlAggregation": "beginColumnPages"
+                },
+                "details": {
+                    "viewId": "details",
+                    "viewName": "Details",
+                    "controlAggregation": "midColumnPages"
+                },
+                "picktaskdetail": {
+                    "viewId": "picktaskdetail",
+                    "viewName": "PickTaskDetail",
+                    "controlAggregation": "endColumnPages"
+                },
+                "scan": {
+                    "viewId": "scan",
+                    "viewName": "Scan",
+                    "controlAggregation": "beginColumnPages"
+                }
+            }
+        },
+        "rootView": {
+            "viewName": "br.com.challenge.monitor.challengemonitor.view.App",
+            "type": "XML",
+            "async": true,
+            "id": "App"
+        }
+    }
+}

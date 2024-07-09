@@ -1,0 +1,335 @@
+<mvc:View
+	xmlns:core="sap.ui.core"
+	controllerName="br.com.challenge.monitor.challengemonitor.controller.Details"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.uxap"
+	xmlns:layout="sap.ui.layout"
+	xmlns:m="sap.m"
+	displayBlock="true"
+	height="100%"
+	busyIndicatorDelay="0"
+>
+	<ObjectPageLayout id="ObjectPageLayout">
+		<headerTitle>
+			<ObjectPageHeader
+				id="ObjectPageHeader"
+				objectTitle="{Header>/ShippingRequestId}"
+			>
+				<actions>
+					<ObjectPageHeaderActionButton
+						id="_IDGenObjectPageHeaderActionButton3"
+						icon="sap-icon://decline"
+						text="close"
+						importance="Medium"
+						tooltip="close"
+						press="onCloseDetailView"
+					/>
+				</actions>
+			</ObjectPageHeader>
+		</headerTitle>
+		<headerContent>
+			<m:FlexBox
+				wrap="Wrap"
+				id="VerticalLayout"
+				alignItems="Center"
+				class="sapUiNoContentPadding sapUiResponsiveMarginEndXL"
+			>
+				<m:HBox id="HorizontalLayout">
+					<m:Text
+						id="Label"
+						text="{i18n>dhCreatedAt}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="idText9000"
+						text="{
+							path: 'Header>/CreationDate',
+							formatter: '.Formatter.dateFormat'
+						}"
+					/>
+				</m:HBox>
+				<m:HBox id="HorizontalLayout2">
+					<m:Text
+						id="Label2"
+						text="{i18n>dhCreatedBy}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label4"
+						text="{Header>/CreatedBy}"
+					/>
+				</m:HBox>
+				<m:HBox id="HorizontalLayout3">
+					<m:Text
+						id="Label3"
+						text="{i18n>dhClient}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label5"
+						text="{Header>/CustomerId}"
+					/>
+				</m:HBox>
+				<m:HBox id="HorizontalLayout21">
+					<m:Text
+						id="Label31"
+						text="{i18n>dhPlant}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label51"
+						text="{Header>/PlantOrigin}"
+					/>
+				</m:HBox>
+			</m:FlexBox>
+			<m:FlexBox
+				id="FlexBox"
+				alignItems="Start"
+				class="sapUiResponsiveMarginBeginXL sapUiResponsiveMarginEndXL"
+			>
+				<m:HBox id="HorizontalLayout44">
+					<m:Text
+						id="Label55"
+						text="{i18n>dhCarrier}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label66"
+						text="{Header>/CarrierId}"
+					/>
+				</m:HBox>
+				<m:HBox id="Horizontalid1">
+					<m:Text
+						id="Label555"
+						text="{i18n>dhDriver}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label666"
+						text="{Header>/DriverName}"
+					/>
+				</m:HBox>
+				<m:HBox id="Horizontalid10">
+					<m:Text
+						id="Label5555"
+						text="{i18n>dhVehicleType}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label6666"
+						text="{Header>/VehicleType}"
+					/>
+				</m:HBox>
+				<m:HBox id="Horizontalid100">
+					<m:Text
+						id="Label55555"
+						text="{i18n>dhTollAmount}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:ObjectNumber
+						id="_IDGenObjectNumber100"
+						number="{
+							parts: [{
+								path: 'Header>/TollAmount'
+							}, {
+								path: 'Header>/CurrencyCode'
+							}],
+							type: 'sap.ui.model.type.Currency',
+							formatOptions: {
+								showMeasure: false
+							}
+						}"
+						unit="{Header>/CurrencyCode}"
+						state="Warning"
+					/>
+				</m:HBox>
+				<m:HBox id="Horizontalid109">
+					<m:Text
+						id="Label5555555"
+						text="{i18n>dhLicensePlate}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label66666666"
+						text="{Header>/LicensePlate}"
+					/>
+				</m:HBox>
+			</m:FlexBox>
+			<m:FlexBox
+				id="FlexBox522"
+				alignItems="Start"
+				justifyContent="Center"
+				class="sapUiResponsiveMarginBeginXL sapUiResponsiveMarginEndXL"
+			>
+				<m:HBox id="Horizontalid1567">
+					<m:Text
+						id="Label555789"
+						text="{i18n>dhAddress}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label6667678"
+						text="{Header>/DestinationAddress}"
+					/>
+				</m:HBox>
+				<m:HBox id="Horizontalid156789">
+					<m:Text
+						id="Label5557890908"
+						text="{i18n>dhDistrict}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label6667678098"
+						text="{Header>/DestinationDistrict}"
+					/>
+				</m:HBox>
+				<m:HBox id="Horizontalid156745">
+					<m:Text
+						id="Label5557890911"
+						text="{i18n>dhCity}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label6667678022"
+						text="{Header>/DestinationCity}"
+					/>
+				</m:HBox>
+				<m:HBox id="Horizontalid100045">
+					<m:Text
+						id="Label5557000911"
+						text="{i18n>dhUFCounty}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label6667000022"
+						text="{Header>/DestinationState}/{Header>/DestinationCountry}"
+					/>
+				</m:HBox>
+				<m:HBox id="Horizontalid15644">
+					<m:Text
+						id="Label555789777"
+						text="{i18n>dhZipCode}"
+						class="sapUiSmallMarginEnd"
+					/>
+					<m:Text
+						id="Label66676345"
+						text="{Header>/DestinationZipcode}"
+					/>
+				</m:HBox>
+			</m:FlexBox>
+			<m:FlexBox
+				id="FlexBox123"
+				alignItems="Start"
+				class="sapUiResponsiveMarginBeginXL"
+			>
+				<m:ObjectStatus
+					text="{
+						path: 'Header>/Status',
+						formatter: '.Formatter.shippingStatus'
+					}"
+					state="{
+						path: 'Header>/Status',
+						formatter: '.Formatter.shippingState'
+					}"
+					id="status100"
+					icon="{
+						path: 'Header>/Status',
+						formatter: '.Formatter.shippingIcon'
+					}"
+					inverted="true"
+					class="sapMObjectStatusLarge"
+				/>
+			</m:FlexBox>
+		</headerContent>
+		<ObjectPageSection
+			titleUppercase="false"
+			id="ObjectPageSection"
+		>
+			<subSections>
+				<ObjectPageSubSection
+					mode="Collapsed"
+					showTitle="true"
+					titleUppercase="false"
+					title="{i18n>dtTitle}"
+				>
+					<m:ScrollContainer
+						id="idScrollContainer"
+						focusable="false"
+						height="auto"
+						horizontal="true"
+						vertical="true"
+						width="auto"
+					>
+						<m:content>
+							<m:Table
+								alternateRowColors="false"
+								mode="SingleSelectMaster"
+								selectionChange="onSelectedItem"
+								id="itemsTable"
+								items="{Details>/results}"
+								class="sapFDynamicPageAlignContent"
+							>
+								<m:columns>
+									<m:Column
+										id="Column"
+										width="8em"
+									>
+										<m:header>
+											<m:Label
+												id="_IDGenLabel1"
+												text="{i18n>dtDeliveryNr}"
+											/>
+										</m:header>
+									</m:Column>
+									<m:Column
+										id="Column2"
+										width="7em"
+									>
+										<m:header>
+											<m:Label
+												id="_IDGenLabel2"
+												text="{i18n>dtDeliveryItem}"
+											/>
+										</m:header>
+									</m:Column>
+									<m:Column
+										id="Column3"
+										width="7em"
+									>
+										<m:header>
+											<m:Label
+												id="_IDGenLabel3"
+												text="{i18n>dtMaterial}"
+											/>
+										</m:header>
+									</m:Column>
+								</m:columns>
+								<m:items>
+									<m:ColumnListItem
+										id="ColumnListItem"
+										type="Navigation"
+									>
+										<m:cells>
+											<m:Text
+												id="Text0"
+												text="{Details>DELIVERY_NR}"
+											/>
+											<m:Text
+												id="Text1"
+												text="{Details>DELIVERY_ITEM_NR}"
+											/>
+											<m:Text
+												id="Text2"
+												text="{Details>MATERIAL_NR}"
+											/>
+										</m:cells>
+									</m:ColumnListItem>
+								</m:items>
+							</m:Table>
+						</m:content>
+					</m:ScrollContainer>
+				</ObjectPageSubSection>
+			</subSections>
+		</ObjectPageSection>
+	</ObjectPageLayout>
+</mvc:View>

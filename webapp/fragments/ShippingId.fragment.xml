@@ -1,0 +1,24 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <SelectDialog
+        id="idSelectDialog"
+        contentHeight="50%"
+        title="{i18n>shippingRequestIdSH}"
+        search=".SearchHelp.onShippingHelpSearch"
+        confirm=".SearchHelp.onValueHelpClose"
+        cancel=".SearchHelp.onValueHelpClose"
+        items="{/ZRFSFBP_SH_SHIPPING_ID}"
+    >
+        <StandardListItem
+            id="idStandardListItem2"
+            title="{ShippingRequestId}"
+            description="Status: {StatusDescription}"
+            info="Created by: {CreatedBy}"
+            icon="sap-icon://detail-view"
+            iconDensityAware="false"
+            iconInset="false"
+        />
+    </SelectDialog>
+</core:FragmentDefinition>

@@ -1,0 +1,24 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <SelectDialog
+        id="CustomerDialog"
+        contentHeight="50%"
+        title="{i18n>customerIdSH}"
+        search=".SearchHelp.onCustomerHelpSearch"
+        confirm=".SearchHelp.onValueHelpClose"
+        cancel=".SearchHelp.onValueHelpClose"
+        items="{/ZRFSFBP_SH_CUSTOMER}"
+    >
+        <StandardListItem
+            id="idStandardListItem23"
+            title="{Kunnr}"
+            description="Name: {Name}"
+            info="Country: {Country}"
+            icon="sap-icon://detail-view"
+            iconDensityAware="false"
+            iconInset="false"
+        />
+    </SelectDialog>
+</core:FragmentDefinition>

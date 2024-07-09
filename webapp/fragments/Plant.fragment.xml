@@ -1,0 +1,24 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <SelectDialog
+        id="PlantDialog"
+        contentHeight="50%"
+        title="{i18n>plantSH}"
+        search=".SearchHelp.onPlantHelpSearch"
+        confirm=".SearchHelp.onValueHelpClose"
+        cancel=".SearchHelp.onValueHelpClose"
+        items="{/ZRFSFBP_SH_PLANT}"
+    >
+        <StandardListItem
+            id="idStandardListItem3"
+            title="{Plant}"
+            description="Name: {Name}"
+            info="Country: {Country}"
+            icon="sap-icon://detail-view"
+            iconDensityAware="false"
+            iconInset="false"
+        />
+    </SelectDialog>
+</core:FragmentDefinition>

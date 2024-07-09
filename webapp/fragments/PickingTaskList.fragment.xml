@@ -1,0 +1,145 @@
+<c:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:c="sap.ui.core"
+    xmlns:mvc="sap.ui.core.mvc"
+>
+    <Dialog
+        id="Dialog"
+        contentWidth="780px"
+        class="sapUiResponsiveContentPadding"
+        title="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogTitle'}"
+        titleAlignment="Center"
+        tooltip="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogTooltip'}"
+        icon="sap-icon://hint"
+        resizable="true"
+        draggable="true"
+    >
+        <content>
+            <Table
+                id="pickTaskTableDialog"
+                items="{PickingTaskList>/results}"
+                noDataText="{i18n>noDataText}"
+                mode="None"
+            >
+                <columns>
+                    <Column
+                        id="Colum7100"
+                        width="5em"
+                    >
+                        <Text
+                            id="Text84561"
+                            text="{i18n>ptlCheckbox}"
+                        />
+                    </Column>
+                    <Column
+                        id="Column400"
+                        width="10em"
+                    >
+                        <Text
+                            id="Text400444"
+                            text="{i18n>ptlPickingTask}"
+                        />
+                    </Column>
+                    <Column
+                        id="Column5000"
+                        width="10em"
+                    >
+                        <Text
+                            id="Text5000"
+                            text="{i18n>ptlPickingTaskVersion}"
+                        />
+                    </Column>
+                    <Column
+                        id="Column4"
+                        width="10em"
+                    >
+                        <Text
+                            id="Text4"
+                            text="{i18n>ptlDeliveryNr}"
+                        />
+                    </Column>
+                    <Column
+                        id="Column5"
+                        width="8em"
+                    >
+                        <Text
+                            id="Text5"
+                            text="{i18n>ptlDeliveryItemNr}"
+                        />
+                    </Column>
+                    <Column
+                        id="Column6"
+                        width="10em"
+                    >
+                        <Text
+                            id="Text6"
+                            text="{i18n>ptlMaterial}"
+                        />
+                    </Column>
+                </columns>
+                <items>
+                    <ColumnListItem id="_IDGenColumn123">
+                        <cells>
+                            <CheckBox
+                                id="idCheckBox"
+                                enabled="{
+                                    path: 'PickingTaskList>PICKING_TASK_ID',
+                                    formatter: '.Formatter.enableDisableCheckBox'
+                                }"
+                                selected="{PickingTaskList>isChecked}"
+                                select="onCheckBoxSelect"
+                            />
+                            <ObjectStatus
+                                id="_ID36265395623"
+                                active="true"
+                                icon="{= ${PickingTaskList>PICKING_TASK_ID} ? '' : 'sap-icon://error' }"
+                                iconDensityAware="true"
+                                inverted="{= ${PickingTaskList>PICKING_TASK_ID} ? false : true }"
+                                state="{= ${PickingTaskList>PICKING_TASK_ID} ? 'None' : 'Error' }"
+                                text="{= ${PickingTaskList>PICKING_TASK_ID} ? ${PickingTaskList>PICKING_TASK_ID} : 'Sem Tarefa' }"
+                            />
+                            <ObjectStatus
+                                id="_IDGenObjectStatus1632563"
+                                active="true"
+                                icon="{= ${PickingTaskList>PICKING_TASK_VERSION} ? '' : 'sap-icon://error' }"
+                                iconDensityAware="true"
+                                inverted="{= ${PickingTaskList>PICKING_TASK_VERSION} ? false : true }"
+                                state="{= ${PickingTaskList>PICKING_TASK_VERSION} ? 'None' : 'Error' }"
+                                text="{= ${PickingTaskList>PICKING_TASK_VERSION} ? ${PickingTaskList>PICKING_TASK_VERSION} : 'Sem Versão' }"
+                            />
+                            <Text
+                                id="_IDGenText2001"
+                                text="{PickingTaskList>DELIVERY_NR}"
+                            />
+                            <Text
+                                id="_IDGenText3002"
+                                text="{PickingTaskList>DELIVERY_ITEM_NR}"
+                            />
+                            <Text
+                                id="_IDGenText4004"
+                                text="{PickingTaskList>MATERIAL_NR}"
+                            />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+        <beginButton>
+            <Button
+                id="IdActionButton"
+                press="onPickingTaskAction"
+                text="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogButtonText'}"
+                icon="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogButtonIcon'}"
+                type="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogButtonType'}"
+            />
+        </beginButton>
+
+        <endButton>
+            <Button
+                id="IdCloseButton100"
+                text="{i18n>ptlBtnClose}"
+                press="onCloseDialog"
+            />
+        </endButton>
+    </Dialog>
+</c:FragmentDefinition>

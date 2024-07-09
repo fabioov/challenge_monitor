@@ -1,0 +1,168 @@
+<c:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:c="sap.ui.core"
+>
+    <Dialog
+        id="itemHistoryDialog"
+        title="{i18n>hdTitle}"
+        titleAlignment="Center"
+        contentWidth="1100px"
+        resizable="true"
+        draggable="true"
+    >
+        <content>
+            <Table
+                id="_IDGenTable1"
+                items="{History>/results}"
+                noDataText="{i18n>noDataText}"
+            >
+                <columns>
+                    <Column id="_IDGenCol4444" width="10em">
+                        <Text
+                            id="_IDGen5"
+                            text="{i18n>hdShippingRequest}"
+                        />
+                    </Column>
+                    <Column id="_IDGenColumn1">
+                        <Text
+                            id="_IDGenText1"
+                            text="{i18n>hdPickingTask}"
+                        />
+                    </Column>
+                    <Column
+                        id="_IDGenColumn2"
+                        width="6em"
+                    >
+                        <Text
+                            id="_IDGenText2"
+                            text="{i18n>hdPickingTaskVersion}"
+                        />
+                    </Column>
+                    <Column id="_IDGenColumn3" width="8em">
+                        <Text
+                            id="_IDGenText3"
+                            text="{i18n>hdDeliveryNr}"
+                        />
+                    </Column>
+                    <Column
+                        id="_IDGenCo456"
+                        width="6em"
+                    >
+                        <Text
+                            id="_IDGenT567"
+                            text="{i18n>hdDeliveryItemNr}"
+                        />
+                    </Column>
+                    <Column id="_IDGfdf66" width="8em">
+                        <Text
+                            id="_IDGe5465654"
+                            text="{i18n>hdMaterial}"
+                        />
+                    </Column>
+                    <Column
+                        id="_Id9001"
+                        width="8em"
+                    >
+                        <Text
+                            id="_IDTxt9001"
+                            text="{i18n>hdQuantity}"
+                        />
+                    </Column>
+                    <Column
+                        id="_Id9002"
+                        width="8em"
+                    >
+                        <Text
+                            id="_IDTxt9002"
+                            text="{i18n>hdQtyPicked}"
+                        />
+                    </Column>
+                    <Column id="_Id9003" width="8em">
+                        <Text
+                            id="_IDTxt9003"
+                            text="{i18n>hdUser}"
+                        />
+                    </Column>
+                    <Column id="_Id9004">
+                        <Text
+                            id="_IDTxt9004"
+                            text="{i18n>hdPickingTaskStatus}"
+                        />
+                    </Column>
+                </columns>
+                <items>
+                    <ColumnListItem id="_IDGenColumnListItem1">
+                        <cells>
+                            <Text
+                                id="_IDGenT123"
+                                text="{History>ShippingRequestId}"
+                            />
+                            <ObjectIdentifier
+                                id="_IDGenObjectIdentifier1"
+                                title="{History>PickingTaskId}"
+                            />
+                            <ObjectNumber
+                                id="_IDGenObjectIdentifier3"
+                                number="{History>PickingTaskVersion}"
+                                state="{
+                                    path: 'History>PickingTaskVersion',
+                                    formatter: '.Formatter.formatVersionState'
+                                }"
+                                inverted="{
+                                    path: 'History>PickingTaskVersion',
+                                    formatter: '.Formatter.formatVersionInversion'
+                                }"
+                            />
+                            <Text
+                                id="_IDGenText9"
+                                text="{History>DeliveryNr}"
+                            />
+                            <Text
+                                id="_IDGenTe97675"
+                                text="{History>DeliveryItemNr}"
+                            />
+                            <Text
+                                id="_IDGenTedrr55"
+                                text="{History>MaterialNr}"
+                            />
+                            <ObjectNumber
+                                id="_IDGenObjectNumber1895265"
+                                active="true"
+                                number="{History>Quantity}"
+                                unit="{History>QuantityUOM}"
+                            />
+                            <ObjectNumber
+                                id="_IDGenObjectNumber2000"
+                                active="true"
+                                number="{History>Quantity_Picked}"
+                                unit="{History>QuantityPickUOM}"
+                            />
+                            <Text
+                                id="idPickingUser"
+                                text="{= ${History>PickingUser} ? ${History>PickingUser} : ${i18n>hdUserNotAssigned} }"
+                            />
+                            <ObjectStatus
+                                text="{= ${History>Status} === 'F' ? ${i18n>hdStatusDone} : ${History>Status} === 'P' ? ${i18n>hdStatusProcessing} : ${i18n>hdStatusRestarted} }"
+                                state="{
+                                    path: 'History>Status',
+                                    formatter: '.Formatter.statusHistory'
+                                }"
+                                id="statusHistory123"
+                                icon="{= ${History>Status} === 'F' ? 'sap-icon://message-success' : ${History>Status} === 'P' ? 'sap-icon://lateness' : 'sap-icon://media-rewind' }"
+                                inverted="true"
+                                class="sapMObjectStatusSmall"
+                            />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+         <beginButton>
+            <Button
+                id="IdCloseButton"
+                text="{i18n>btnClose}"
+                press="onCloseDialog"
+            />
+        </beginButton>
+    </Dialog>
+</c:FragmentDefinition>

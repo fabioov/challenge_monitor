@@ -1,0 +1,23 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <SelectDialog
+        id="UserDialog"
+        contentHeight="50%"
+        title="{i18n>userSH}"
+        search=".SearchHelp.onUserHelpSearch"
+        confirm=".SearchHelp.onValueHelpClose"
+        cancel=".SearchHelp.onValueHelpClose"
+        items="{/ZRFSFBP_SH_USER}"
+    >
+        <StandardListItem
+            id="idStandardListItemUser"
+            title="{UserName}"
+            description="Name: {FirstName} {LastName}"
+            icon="sap-icon://detail-view"
+            iconDensityAware="false"
+            iconInset="false"
+        />
+    </SelectDialog>
+</core:FragmentDefinition>
