@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://sap.github.io/ui5-tooling/schema/ui5.yaml.json
+
+specVersion: "3.1"
+metadata:
+  name: br.com.challenge.monitor.challengemonitor
+type: application
+builder:
+  resources:
+    excludes:
+      - /test/**
+      - /localService/**
+  customTasks:
+    - name: deploy-to-abap
+      afterTask: generateCachebusterInfo
+      configuration:
+        target:
+          url: http://vm29.4hub.cloud:52900
+          client: "100"
+        app:
+          name: CHALLENGEMON
+          description: Challenge Monitor
+          package: ZRFS_FBP_CHALLENGE
+          transport: S4HK902020
+        exclude:
+          - /test/
