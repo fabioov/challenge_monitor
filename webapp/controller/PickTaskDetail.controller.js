@@ -15,7 +15,7 @@ sap.ui.define([
 	Filter,
 	FilterOperator,
 	Fragment,
-	MessagePopover,
+	MessagePopoverHook,
 	BusyDialog,
 	MessageBox
 ) {
@@ -529,7 +529,6 @@ sap.ui.define([
 
 				oModel.metadataLoaded().then(function () {
 					oModel.setDeferredGroups([sGroupId]);
-
 					items.forEach((oItem) => {
 						let sChangeSetId = oItem.SHIPPING_REQUEST_ID + oItem.DELIVERY_NR + oItem.DELIVERY_ITEM_NR + oItem.MATERIAL_NR;
 
