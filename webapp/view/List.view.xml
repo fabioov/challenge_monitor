@@ -180,7 +180,7 @@
                                         <cells>
                                             <core:Icon
                                                 id="idIcon"
-                                                src="sap-icon://shipping-status"
+                                                src="sap-icon://cart-5"
                                                 size="2em"
                                             />
                                             <Text
