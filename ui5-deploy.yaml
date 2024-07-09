@@ -17,9 +17,9 @@ builder:
           url: http://vm29.4hub.cloud:52900
           client: "100"
         app:
-          name: CHALLENGEMON
-          description: Challenge Monitor
+          name: ZCHALMON
+          description: Challenge Monitor Deploy
           package: ZRFS_FBP_CHALLENGE
-          transport: S4HK902020
+          transport: S4HK902037
         exclude:
           - /test/
