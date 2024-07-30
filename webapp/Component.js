@@ -42,6 +42,12 @@ sap.ui.define([
                     "action": ""
                 })
                 this.setModel(buttonActionModel, "buttonActionModel");
+
+                let detailModel = new JSONModel({
+                    "showListFooter": true,
+                    "showDetailFooter": false
+                });
+                this.setModel(detailModel, "detailModel");
             }
         });
     }

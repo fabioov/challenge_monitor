@@ -20,12 +20,9 @@ sap.ui.define([
     FilterOperator,
     SearchHelp,
     MessageBox,
-    BusyDialog,
-    ODataModel,
     MessagePopoverHook,
     PrintForms,
-    Device
-  ) {
+    Device) {
     "use strict";
 
     return Controller.extend("br.com.challenge.monitor.challengemonitor.controller.List", {
@@ -36,6 +33,7 @@ sap.ui.define([
         let popMsgModel = this.getOwnerComponent().getModel("popoverModel");
 
         this.getView().byId("shippingsTable").attachEventOnce("updateFinished", this._restoreAppState, this);
+
       },
 
       _restoreAppState: function () {
@@ -80,6 +78,9 @@ sap.ui.define([
             if (oItemData.ShippingRequestId === oData.shippingRequestId) {
               oList.setSelectedItem(oItem);
               oList.scrollToIndex(oList.indexOfItem(oItem));
+              let oDetailModel = this.getOwnerComponent().getModel("detailModel");
+              oDetailModel.setProperty("/showListFooter", oData.showListFooter);
+              oDetailModel.setProperty("/showDetailFooter", oData.showDetailFooter);
               // Navigate to Details view with selected ShippingRequestId
               let bReplace = !sap.ui.Device.system.phone;
               this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
@@ -109,12 +110,18 @@ sap.ui.define([
         let plantOriginFilterValue = this.getView().byId("plantOriginFilter").getValue();
         let createdByFilterValue = this.getView().byId("createdByFilter").getValue();
         let oShippingRequestId = "";
+        //get the detailModel values for footers
+        let oDetailModel = this.getOwnerComponent().getModel("detailModel");
+        let showListFooter = oDetailModel.getProperty("/showListFooter");
+        let showDetailFooter = oDetailModel.getProperty("/showDetailFooter");
 
         if (oSelectedItems.length > 0) {
           oShippingRequestId = oSelectedItems[0].getBindingContext().getProperty("ShippingRequestId");
         }
         let oAppStateData = {
           shippingRequestId: oShippingRequestId,
+          showListFooter: showListFooter,
+          showDetailFooter: showDetailFooter,
           filters: {
             shippingRequestId: shippingRequestIdFilterValue,
             status: statusFilter,
@@ -128,7 +135,7 @@ sap.ui.define([
 
       onExit: function () {
         this._storeAppState();
-    },
+      },
 
 
       onSelectedItem: function (oEvent) {
@@ -136,6 +143,9 @@ sap.ui.define([
         let oSelectedItem = oEvent.getParameter("listItem");
         let oContext = oSelectedItem.getBindingContext();
         let oShippingRequestId = oContext.getProperty("ShippingRequestId");
+        let oDetailModel = this.getOwnerComponent().getModel("detailModel");
+        oDetailModel.setProperty("/showListFooter", false);
+        oDetailModel.setProperty("/showDetailFooter", true);
 
         this._storeAppState();
 
@@ -237,94 +247,6 @@ sap.ui.define([
 
       },
 
-      onChangeStatus: function (oEvent) {
-        let oModel = this.getView().getModel();
-        let oTable = this.getView().byId("shippingsTable");
-        let oSelectedItem = oTable.getSelectedItem();
-        let that = this
-        this._oBundle = this.getView().getModel("i18n").getResourceBundle();
-
-        if (!oSelectedItem) {
-          MessageBox.warning(that._oBundle.getText("lvSelectAtLeastOneShippingRequest"));
-          return;
-        }
-
-
-        let oContext = oSelectedItem.getBindingContext();
-        let sPath = oContext.getPath();
-        let shippingRequest = oContext.getObject();
-        delete shippingRequest.__metadata;
-        var sStatus = shippingRequest.Status === "K" ? that._oBundle.getText("statusK") :
-          shippingRequest.Status === "C" ? that._oBundle.getText("statusC") :
-            that._oBundle.getText("statusX");
-        if (shippingRequest.Status === "K" || shippingRequest.Status === "C" || shippingRequest.Status === "X") {
-          MessageBox.warning(that._oBundle.getText("lvStatusNotAllowedTochange", [sStatus]));
-          return;
-        }
-
-        MessageBox.confirm(that._oBundle.getText("lvConfirmChangeStatus", [shippingRequest.ShippingRequestId]),
-          function (oAction) {
-            if (oAction === MessageBox.Action.OK) {
-              that._oBusyDialog = new BusyDialog({
-                Text: that._oBundle.getText("lvWaiting")
-              });
-              that._oBusyDialog.open();
-
-              setTimeout(function () {
-                let oModelSend = new ODataModel(
-                  oModel.sServiceUrl,
-                  true
-                );
-                oModelSend.update(sPath, shippingRequest, {
-                  success: function (data, response) {
-                    if (response.statusCode === '204') {
-                      let oParams = {
-                        type: "Success",
-                        title: that._oBundle.getText("lvStatusChangedSuccessfully", [shippingRequest.ShippingRequestId])
-                      };
-
-                      MessagePopoverHook.onSetMessage(that.getView(), oParams);
-                      MessageBox.success(that._oBundle.getText("lvStatusChangedSuccessfully", [shippingRequest.ShippingRequestId]));
-                      that._oBusyDialog.close();
-                      let oBinding = oTable.getBinding("items");
-                      oBinding.refresh();
-                    }
-                  },
-                  error: function (error) {
-
-
-                    let errorResponse = JSON.parse(error.responseText);
-                    let oParams = {
-                      type: "Error",
-                      title: errorResponse.error.message.value
-                    };
-                    // Change this to a messageBox
-                    MessageBox.error(errorResponse.error.message.value, {
-                      duration: 4000,
-                      closeOnBrowserNavigation: false,
-                      animationDuration: 1000,
-                      width: "20em",
-                      my: "center bottom",
-                      at: "center bottom",
-                      of: window,
-                      autoClose: true,
-                      closeIcon: false
-                    });
-                    MessagePopoverHook.onSetMessage(that.getView(), oParams);
-                    that._oBusyDialog.close();
-                  },
-                })
-              }, 3000);
-            }
-          }
-        );
-      },
-
-      onError: function () {
-        MessagePopoverHook.onErrorMessage(this.getView());
-        MessagePopoverHook.onSuccessMessage(this.getView());
-      },
-
       onMessagesButtonPress: function (oEvent) {
         MessagePopoverHook.onMessagesPopoverOpen(oEvent);
       },
@@ -345,84 +267,6 @@ sap.ui.define([
         let oContext = oSelectedItem.getBindingContext();
         PrintForms.onPrintPress(this.getView(), oContext);
       },
-
-      onDeleteShippingRequest: function () {
-        let oModel = this.getView().getModel();
-        let oTable = this.getView().byId("shippingsTable");
-        let oSelectedItem = oTable.getSelectedItem();
-        this._oBundle = this.getView().getModel("i18n").getResourceBundle();
-
-        if (!oSelectedItem) {
-          MessageBox.warning(that._oBundle.getText("lvSelectAtLeastOneShippingRequest"));
-          return;
-        }
-
-        let that = this
-        let oContext = oSelectedItem.getBindingContext();
-        let sPath = oContext.getPath();
-        let shippingRequest = oContext.getObject();
-
-        if (shippingRequest.Status === "X") {
-          MessageBox.warning(that._oBundle.getText("lvShippingRequestAlreadyCancelled", [shippingRequest.ShippingRequestId]));
-          return;
-        }
-        delete shippingRequest.__metadata;
-
-        MessageBox.confirm(this._oBundle.getText("lvConfirmCancelShippingRequest", [shippingRequest.ShippingRequestId]),
-          function (oAction) {
-            if (oAction === MessageBox.Action.OK) {
-              that._oBusyDialog = new BusyDialog({
-                Text: that._oBundle.getText("lvWaiting")
-              });
-              that._oBusyDialog.open();
-
-              setTimeout(function () {
-                let oModelSend = new ODataModel(
-                  oModel.sServiceUrl,
-                  true
-                );
-                oModelSend.remove(sPath, {
-                  success: function (data, response) {
-                    if (response.statusCode === '204') {
-                      let oParams = {
-                        type: "Success",
-                        title: that._oBundle.getText("lvStatusCancelledSuccessfully", [shippingRequest.ShippingRequestId])
-                      };
-                      MessagePopoverHook.onSetMessage(that.getView(), oParams);
-                      MessageBox.success(oParams.title);
-                      that._oBusyDialog.close();
-                      let oBinding = oTable.getBinding("items");
-                      oBinding.refresh();
-                    }
-                  },
-                  error: function (error) {
-                    let errorResponse = JSON.parse(error.responseText);
-                    let oParams = {
-                      type: "Error",
-                      title: errorResponse.error.message.value
-                    };
-                    MessageBox.error(errorResponse.error.message.value, {
-                      duration: 4000,
-                      closeOnBrowserNavigation: false,
-                      animationDuration: 1000,
-                      width: "20em",
-                      my: "center bottom",
-                      at: "center bottom",
-                      of: window,
-                      autoClose: true,
-                      closeIcon: false
-                    });
-                    MessagePopoverHook.onSetMessage(that.getView(), oParams);
-                    that._oBusyDialog.close();
-                  },
-                })
-              }, 3000);
-            }
-          }
-        );
-
-      },
-
 
     });
 

@@ -18,7 +18,7 @@
                 headerExpanded="true"
                 headerPinnable="true"
                 preserveHeaderStateOnScroll="false"
-                showFooter="false"
+                showFooter="true"
                 titleAreaShrinkRatio="1:1.6:1.6"
                 toggleHeaderOnTitleClick="true"
                 class="sapUiNoContentPadding"
@@ -64,7 +64,7 @@
                                 id="statusFilterItem"
                                 label="{i18n>fgStatus}"
                                 name="Status"
-                                labelTooltip="{fgStatusTooltip}" 
+                                labelTooltip="{fgStatusTooltip}"
                                 visibleInFilterBar="true"
                                 groupTitle="{i18n>fgHeaderGroup}"
                                 groupName="Principal"
@@ -170,7 +170,6 @@
                                 showOverlay="false"
                                 mode="SingleSelectMaster"
                                 selectionChange="onSelectedItem"
-
                             >
                                 <items>
                                     <ColumnListItem
@@ -323,24 +322,40 @@
                         </content>
                     </ScrollContainer>
                 </semantic:content>
-
-            </semantic:SemanticPage>
-        </content>
-        <footer>
-			<OverflowToolbar id="_IDGenOverflowToolbar1">
-				<Button
-					visible="{popoverModel>/visible}"
-					icon="sap-icon://message-popup"
+                <semantic:footerCustomActions>
+                    <Button
+                        visible="{popoverModel>/visible}"
+                        icon="sap-icon://message-popup"
                         id="idButtonMessage"
                         text="{popoverModel>/messageLength}"
                         type="{popoverModel>/type}"
                         press="onMessagesButtonPress"
-					ariaHasPopup="Dialog"/>
-				<ToolbarSpacer id="_IDGenToolbarSpacer1"/>
-				<Button id="changeStatus" type="Accept" icon="sap-icon://journey-change" text="{i18n>btnChangeStatus}" press="onChangeStatus" />
-				<Button id="cancelShipping" type="Reject" icon="sap-icon://cancel" text="{i18n>btnCancelShipRequest}" press="onDeleteShippingRequest" />
-                <Button id="_IDGenButton3" type="Accept" icon="sap-icon://print" text="{i18n>btnPrint}" press="onPrintForms"/>
-			</OverflowToolbar>
-		</footer>
+                        ariaHasPopup="Dialog"
+                        class="messageButton"
+                    />
+                    <Button
+                        id="_IDGenButton3"
+                        type="Transparent"
+                        icon="sap-icon://print"
+                        text="{i18n>btnPrint}"
+                        press="onPrintForms"
+                    />
+                </semantic:footerCustomActions>
+                <semantic:positiveAction>
+                    <semantic:PositiveAction
+                        id="PositiveAction"
+                        text="{i18n>btnChangeStatus}"
+                        press="onChangeStatus"
+                    />
+                </semantic:positiveAction>
+                <semantic:negativeAction>
+                    <semantic:NegativeAction
+                        id="idNegativeAction"
+                        text="{i18n>btnCancelShipRequest}"
+                        press="onDeleteShippingRequest"
+                    />
+                </semantic:negativeAction>
+            </semantic:SemanticPage>
+        </content>
     </Page>
 </mvc:View>

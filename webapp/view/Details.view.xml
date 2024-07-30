@@ -9,7 +9,10 @@
 	height="100%"
 	busyIndicatorDelay="0"
 >
-	<ObjectPageLayout id="ObjectPageLayout">
+	<ObjectPageLayout
+		id="ObjectPageLayout"
+		showFooter="{detailModel>/showDetailFooter}"
+	>
 		<headerTitle>
 			<ObjectPageHeader
 				id="ObjectPageHeader"
@@ -331,5 +334,42 @@
 				</ObjectPageSubSection>
 			</subSections>
 		</ObjectPageSection>
+		<footer>
+			<m:OverflowToolbar id="OverflowToolbar">
+				<m:Button
+					visible="{popoverModel>/visible}"
+					icon="sap-icon://message-popup"
+					id="idButtonMessage2"
+					text="{popoverModel>/messageLength}"
+					type="{popoverModel>/type}"
+					press="onMessagesButtonPress"
+					ariaHasPopup="Dialog"
+					class="messageButton"
+				/>
+				<m:ToolbarSpacer />
+				<m:Button
+					id="_IDGenButton1"
+					text="{i18n>btnChangeStatus}"
+					press="onChangeStatus"
+					type="Accept"
+				/>
+				<m:Button
+					id="_IDGenButton169562261"
+					enabled="true"
+					iconDensityAware="true"
+					text="{i18n>btnCancelShipRequest}"
+					press="onCancelShippingRequest"
+					type="Reject"
+				/>
+				<m:Button
+					id="_IDGenButto3454353"
+					icon="sap-icon://print"
+					text="{i18n>btnPrint}"
+					press="onPrintForms"
+					type="Transparent"
+					class="detailPrintButton"
+				/>
+			</m:OverflowToolbar>
+		</footer>
 	</ObjectPageLayout>
 </mvc:View>

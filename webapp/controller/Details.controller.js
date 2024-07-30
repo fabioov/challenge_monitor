@@ -5,14 +5,21 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "br/com/challenge/monitor/challengemonitor/utils/formatter",
     "sap/ui/Device",
-    "sap/ushell/services/CrossApplicationNavigation"
+    "br/com/challenge/monitor/challengemonitor/utils/MessagePopover",
+    "sap/m/MessageBox",
+    "sap/m/BusyDialog",
+    "sap/ui/model/odata/v2/ODataModel"
 ], function (
     Controller,
     Filter,
     FilterOperator,
     JSONModel,
     formatter,
-    Device
+    Device,
+    MessagePopoverHook,
+    MessageBox,
+    BusyDialog,
+    ODataModel
 ) {
     "use strict";
 
@@ -22,8 +29,7 @@ sap.ui.define([
             onInit: function () {
                 this.getOwnerComponent().getRouter().getRoute("Details").attachPatternMatched(this._onBindingDetails, this);
                 this.getView().byId("itemsTable").attachEventOnce("updateFinished", this._restoreAppState, this);
-
-
+                let oDetailModel = this.getOwnerComponent().getModel("detailModel");
             },
 
             _storeAppState: function (keys) {
@@ -81,10 +87,9 @@ sap.ui.define([
 
             },
 
-            // onExit: function () {
-            //     let oDetailsStateData = jQuery.sap.storage(jQuery.sap.storage.Type.session).get("detailsState");
-            //     this._storeAppState(oDetailsStateData);
-            // },
+            onMessagesButtonPress: function (oEvent) {
+                MessagePopoverHook.onMessagesPopoverOpen(oEvent);
+            },
 
             _onBindingDetails: function (oEvent) {
 
@@ -129,6 +134,9 @@ sap.ui.define([
             },
 
             onCloseDetailView: function () {
+                let oDetailModel = this.getOwnerComponent().getModel("detailModel");
+                oDetailModel.setProperty("/showListFooter", true);
+                oDetailModel.setProperty("/showDetailFooter", false);
                 // Get the owner component
                 var oComponent = this.getOwnerComponent();
 
@@ -190,6 +198,193 @@ sap.ui.define([
                     },
                     bReplace
                 );
-            }
+            },
+            onChangeStatus: function (oEvent) {
+                let oModel = this.getView().getModel();
+                let that = this;
+                this._oBundle = this.getView().getModel("i18n").getResourceBundle();
+                let detailModel = this.getView().getModel("Header");
+                let shippingRequest = detailModel.getData();
+                delete shippingRequest.__metadata;
+                let sPath = `/ZRFSFBPCDS0001('${shippingRequest.ShippingRequestId}')`;
+
+                let sStatus = shippingRequest.Status === "K" ? that._oBundle.getText("statusK") :
+                    shippingRequest.Status === "C" ? that._oBundle.getText("statusC") :
+                        that._oBundle.getText("statusX");
+                if (shippingRequest.Status === "K" || shippingRequest.Status === "C" || shippingRequest.Status === "X") {
+                    MessageBox.warning(that._oBundle.getText("lvStatusNotAllowedTochange", [sStatus]));
+                    return;
+                }
+
+                MessageBox.confirm(that._oBundle.getText("lvConfirmChangeStatus", [shippingRequest.ShippingRequestId]),
+                    function (oAction) {
+                        if (oAction === MessageBox.Action.OK) {
+                            that._oBusyDialog = new BusyDialog({
+                                Text: that._oBundle.getText("lvWaiting")
+                            });
+                            that._oBusyDialog.open();
+
+                            setTimeout(function () {
+                                let oModelSend = new ODataModel(
+                                    oModel.sServiceUrl,
+                                    true
+                                );
+                                oModelSend.update(sPath, shippingRequest, {
+                                    success: function (data, response) {
+                                        if (response.statusCode === '204') {
+                                            let oParams = {
+                                                type: "Success",
+                                                title: that._oBundle.getText("lvStatusChangedSuccessfully", [shippingRequest.ShippingRequestId])
+                                            };
+
+                                            MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                                            MessageBox.success(that._oBundle.getText("lvStatusChangedSuccessfully", [shippingRequest.ShippingRequestId]));
+                                            that._oBusyDialog.close();
+
+                                            that.refreshHeaderAndDetails();
+                                            oBinding.refresh();
+                                        }
+                                    },
+                                    error: function (error) {
+
+
+                                        let errorResponse = JSON.parse(error.responseText);
+                                        let oParams = {
+                                            type: "Error",
+                                            title: errorResponse.error.message.value
+                                        };
+                                        // Change this to a messageBox
+                                        MessageBox.error(errorResponse.error.message.value, {
+                                            duration: 4000,
+                                            closeOnBrowserNavigation: false,
+                                            animationDuration: 1000,
+                                            width: "20em",
+                                            my: "center bottom",
+                                            at: "center bottom",
+                                            of: window,
+                                            autoClose: true,
+                                            closeIcon: false
+                                        });
+                                        MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                                        that._oBusyDialog.close();
+                                    },
+                                })
+                            }, 3000);
+                        }
+                    }
+                );
+            },
+
+            onCancelShippingRequest: function () {
+                let oModel = this.getView().getModel();
+                this._oBundle = this.getView().getModel("i18n").getResourceBundle();
+              
+                let detailModel = this.getView().getModel("Header");
+                let shippingRequest = detailModel.getData();
+                delete shippingRequest.__metadata;
+                let sPath = `/ZRFSFBPCDS0001('${shippingRequest.ShippingRequestId}')`;
+              
+                let that = this;
+              
+                if (shippingRequest.Status === "X") {
+                  MessageBox.warning(that._oBundle.getText("lvShippingRequestAlreadyCancelled", [shippingRequest.ShippingRequestId]));
+                  return;
+                }
+              
+                MessageBox.confirm(this._oBundle.getText("lvConfirmCancelShippingRequest", [shippingRequest.ShippingRequestId]),
+                  function (oAction) {
+                    if (oAction === MessageBox.Action.OK) {
+                      that._oBusyDialog = new BusyDialog({
+                        text: that._oBundle.getText("lvWaiting")
+                      });
+                      that._oBusyDialog.open();
+              
+                      setTimeout(function () {
+                        let oModelSend = new ODataModel(
+                          oModel.sServiceUrl,
+                          true
+                        );
+                        oModelSend.remove(sPath, {
+                          success: function (data, response) {
+                            if (response.statusCode === "204") {
+                              let oParams = {
+                                type: "Success",
+                                title: that._oBundle.getText("lvStatusCancelledSuccessfully", [shippingRequest.ShippingRequestId])
+                              };
+                              MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                              MessageBox.success(oParams.title);
+              
+                              that.refreshHeaderAndDetails();
+
+                              that._oBusyDialog.close();
+                            }
+                          },
+                          error: function (error) {
+                            let errorResponse = JSON.parse(error.responseText);
+                            let oParams = {
+                              type: "Error",
+                              title: errorResponse.error.message.value
+                            };
+                            MessageBox.error(errorResponse.error.message.value, {
+                              duration: 4000,
+                              closeOnBrowserNavigation: false,
+                              animationDuration: 1000,
+                              width: "20em",
+                              my: "center bottom",
+                              at: "center bottom",
+                              of: window,
+                              autoClose: true,
+                              closeIcon: false
+                            });
+                            MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                            that._oBusyDialog.close();
+                          },
+                        });
+                      }, 3000);
+                    }
+                  }
+                );
+              },
+
+              refreshHeaderAndDetails: function () {
+                // Get the SHIPPING_REQUEST_ID from the event parameters
+                let oHeaderModel = this.getView().getModel("Header");
+                let shippingRequestId = `0000000${oHeaderModel.getData().ShippingRequestId}`;
+
+                // Get the view and the OData model
+                let oView = this.getView();
+                let oModel = oView.getModel();
+
+                // Define the filter for the SHIPPING_REQUEST_ID
+                let aFilters = [new Filter("SHIPPING_REQUEST_ID", FilterOperator.EQ, shippingRequestId)];
+
+                // Read data from the first entity set (ZRFSFBPCDS0002)
+                let sElement = "/ZRFSFBPCDS0002";
+                oModel.read(sElement, {
+                    filters: aFilters,
+                    success: function (oData) {
+                        if (oData.results.length > 0) {
+                            let oItemsModel = new JSONModel();
+                            oItemsModel.setData(oData);
+                            oView.setModel(oItemsModel, "Details");
+                        } else {
+                        }
+                    },
+                    error: function (oError) {
+                    }
+                });
+
+                // Read data from the second entity set (ZRFSFBPCDS0001)
+                let sPath = `/ZRFSFBPCDS0001('${shippingRequestId}')`;
+                oModel.read(sPath, {
+                    success: function (oData) {
+                        console.log("Data Header Read:", oData);
+                        let oJSONModel = new JSONModel(oData);
+                        oView.setModel(oJSONModel, "Header");
+                    },
+                    error: function (oError) {
+                    }
+                });
+              }
         });
 });
