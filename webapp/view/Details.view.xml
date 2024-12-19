@@ -3,7 +3,6 @@
 	controllerName="br.com.challenge.monitor.challengemonitor.controller.Details"
 	xmlns:mvc="sap.ui.core.mvc"
 	xmlns="sap.uxap"
-	xmlns:layout="sap.ui.layout"
 	xmlns:m="sap.m"
 	displayBlock="true"
 	height="100%"

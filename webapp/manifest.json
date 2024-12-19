@@ -93,6 +93,11 @@
                 {
                     "uri": "css/style.css"
                 }
+            ],
+            "js": [
+                {
+                    "uri": "libs/pako/dist/pako.js"
+                }
             ]
         },
         "routing": {
@@ -119,7 +124,7 @@
                 },
                 {
                     "name": "Details",
-                    "pattern": "details/{SHIPPING_REQUEST_ID}",
+                    "pattern": "details/{SHIPPING_REQUEST_ID}/:appState*:",
                     "target": [
                         "list",
                         "details"
@@ -127,7 +132,7 @@
                 },
                 {
                     "name": "PickTaskDetail",
-                    "pattern": "details/{SHIPPING_REQUEST_ID}/picktaskdetail/{DELIVERY_NR}/{DELIVERY_ITEM_NR}/{MATERIAL_NR}/{STATUS}",
+                    "pattern": "details/{SHIPPING_REQUEST_ID}/picktaskdetail/{DELIVERY_NR}/{DELIVERY_ITEM_NR}/{MATERIAL_NR}/{STATUS}/:appState*:",
                     "target": [
                         "list",
                         "details",

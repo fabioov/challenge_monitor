@@ -1,12 +1,11 @@
 sap.ui.define([
-  "sap/ui/core/mvc/Controller",
+  "./BaseController",
   "br/com/challenge/monitor/challengemonitor/utils/formatter",
   "sap/ui/model/Filter",
   "sap/ui/model/FilterOperator",
   "br/com/challenge/monitor/challengemonitor/utils/SearchHelp",
   "sap/m/MessageBox",
   "sap/m/BusyDialog",
-  "sap/ui/model/odata/v2/ODataModel",
   "br/com/challenge/monitor/challengemonitor/utils/MessagePopover",
   "br/com/challenge/monitor/challengemonitor/utils/PrintForms",
   "sap/ui/Device"
@@ -14,18 +13,20 @@ sap.ui.define([
   /**
    * @param {typeof sap.ui.core.mvc.Controller} Controller
    */
-  function (Controller,
+  function (BaseController,
     formatter,
     Filter,
     FilterOperator,
     SearchHelp,
     MessageBox,
+    BusyDialog,
     MessagePopoverHook,
     PrintForms,
-    Device) {
+    Device
+  ) {
     "use strict";
 
-    return Controller.extend("br.com.challenge.monitor.challengemonitor.controller.List", {
+    return BaseController.extend("br.com.challenge.monitor.challengemonitor.controller.List", {
       Formatter: formatter,
       SearchHelp: SearchHelp,
       onInit: function () {
@@ -37,19 +38,19 @@ sap.ui.define([
       },
 
       _restoreAppState: function () {
-
-        // Retrieve from session storage
-        let oAppStateData = jQuery.sap.storage(jQuery.sap.storage.Type.session).get("myAppState");
+        // Retrieve the encoded app state string from the URL
+        let appStateEncoded = this.getAppStateFromUrl();
+        debugger;
+        var oAppStateData = this.decompressAndDecode(appStateEncoded);
 
         if (oAppStateData) {
-          // Apply application state
-          this._applyAppState(oAppStateData);
-          console.log("Restored Application State Data:", oAppStateData);
+            // Apply the application state
+            this._applyAppState(oAppStateData);
 
-          // Optionally, restore filters if they are stored together
-          this._applyFilters(oAppStateData.filters);
+            // Optionally, restore filters if they are stored together
+            this._applyFilters(oAppStateData.filters);
         } else {
-          console.warn("No application state data found in session storage.");
+          console.warn("No application state data found in the URL.");
         }
       },
 
@@ -83,7 +84,7 @@ sap.ui.define([
               oDetailModel.setProperty("/showDetailFooter", oData.showDetailFooter);
               // Navigate to Details view with selected ShippingRequestId
               let bReplace = !sap.ui.Device.system.phone;
-              this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+              this.getModel("appView").setProperty("/layout", oData.appView.layout);
               this.getRouter().navTo(
                 "Details",
                 {
@@ -130,13 +131,32 @@ sap.ui.define([
             createdBy: createdByFilterValue
           }
         };
-        jQuery.sap.storage(jQuery.sap.storage.Type.session).put("myAppState", oAppStateData);
+
+        this._onUpdateUrl(oAppStateData)
+
+      },
+
+      _onUpdateUrl: function (oAppStateData) {
+        debugger;
+        var oUrl = this.getAppStateFromUrl();
+        const appStateEncoded = this.compressAndEncode(oAppStateData);
+
+        // var hasParams = window.location.href.indexOf('?') > -1;
+        var updatedUrl = '';
+
+        if (oUrl) {
+          updatedUrl = window.location.href.replace(/appState=([^&]*)/, 'appState=' + appStateEncoded);
+        } else {
+          updatedUrl = window.location.href + '?appState=' + appStateEncoded;
+        }
+
+        // Replace the URL in the browser history without reloading
+        window.history.replaceState({}, '', updatedUrl);
       },
 
       onExit: function () {
         this._storeAppState();
       },
-
 
       onSelectedItem: function (oEvent) {
         let bReplace = !Device.system.phone;
@@ -146,8 +166,18 @@ sap.ui.define([
         let oDetailModel = this.getOwnerComponent().getModel("detailModel");
         oDetailModel.setProperty("/showListFooter", false);
         oDetailModel.setProperty("/showDetailFooter", true);
-
-        this._storeAppState();
+        debugger;
+        var oUrl = this.getAppStateFromUrl();
+        var oAppStateData = {};
+        if (oUrl) {
+          oAppStateData = this.decompressAndDecode(oUrl);
+        }
+        oAppStateData.shippingRequestId = oShippingRequestId;
+        oAppStateData.showListFooter = false;
+        oAppStateData.showDetailFooter = true;
+        oAppStateData.appView = {
+          layout: "TwoColumnsBeginExpanded"
+        }
 
         this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
         this.getRouter().navTo(
@@ -157,6 +187,11 @@ sap.ui.define([
           },
           bReplace
         );
+
+        // Update the URL after navTo completes
+        setTimeout(() => {
+          this._onUpdateUrl(oAppStateData);
+        }, 0);
       },
 
       getRouter: function () {
@@ -169,7 +204,10 @@ sap.ui.define([
 
       onFilterBarSearch: function (event) {
 
-        this._storeAppState();
+        if (event && event.getSource && event.getSource().getMetadata().getName() === "sap.ui.comp.filterbar.FilterBar") {
+          // Store the application state only for a button event
+          this._storeAppState();
+        }
 
         let shippingRequestIdFilter = this.getView().byId("idShippingRequestItemFilter");
         let statusFilter = this.getView().byId("statusFilter");
@@ -242,8 +280,6 @@ sap.ui.define([
         var oTable = this.getView().byId("shippingsTable");
         let oBinding = oTable.getBinding("items");
         oBinding.filter(oFinalFilter);
-
-        console.log(oBinding);
 
       },
 

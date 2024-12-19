@@ -6,7 +6,6 @@
     xmlns="sap.m"
     xmlns:semantic="sap.f.semantic"
     xmlns:fb="sap.ui.comp.filterbar"
-    xmlns:ndc="sap.ndc"
 >
     <Page
         id="idPage"
@@ -18,7 +17,7 @@
                 headerExpanded="true"
                 headerPinnable="true"
                 preserveHeaderStateOnScroll="false"
-                showFooter="true"
+                showFooter="false"
                 titleAreaShrinkRatio="1:1.6:1.6"
                 toggleHeaderOnTitleClick="true"
                 class="sapUiNoContentPadding"
@@ -323,7 +322,7 @@
                     </ScrollContainer>
                 </semantic:content>
                 <semantic:footerCustomActions>
-                    <Button
+                    <!-- <Button
                         visible="{popoverModel>/visible}"
                         icon="sap-icon://message-popup"
                         id="idButtonMessage"
@@ -339,21 +338,21 @@
                         icon="sap-icon://print"
                         text="{i18n>btnPrint}"
                         press="onPrintForms"
-                    />
+                    /> -->
                 </semantic:footerCustomActions>
                 <semantic:positiveAction>
-                    <semantic:PositiveAction
+                    <!-- <semantic:PositiveAction
                         id="PositiveAction"
                         text="{i18n>btnChangeStatus}"
                         press="onChangeStatus"
-                    />
+                    /> -->
                 </semantic:positiveAction>
                 <semantic:negativeAction>
-                    <semantic:NegativeAction
+                    <!-- <semantic:NegativeAction
                         id="idNegativeAction"
                         text="{i18n>btnCancelShipRequest}"
                         press="onDeleteShippingRequest"
-                    />
+                    /> -->
                 </semantic:negativeAction>
             </semantic:SemanticPage>
         </content>

@@ -1,5 +1,5 @@
 sap.ui.define([
-    "sap/ui/core/mvc/Controller",
+    "./BaseController",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/ui/model/json/JSONModel",
@@ -10,7 +10,7 @@ sap.ui.define([
     "sap/m/BusyDialog",
     "sap/ui/model/odata/v2/ODataModel"
 ], function (
-    Controller,
+    BaseController,
     Filter,
     FilterOperator,
     JSONModel,
@@ -23,14 +23,16 @@ sap.ui.define([
 ) {
     "use strict";
 
-    return Controller.extend("br.com.challenge.monitor.challengemonitor.controller.Details",
+    return BaseController.extend("br.com.challenge.monitor.challengemonitor.controller.Details",
         {
             Formatter: formatter,
             onInit: function () {
                 this.getOwnerComponent().getRouter().getRoute("Details").attachPatternMatched(this._onBindingDetails, this);
+                debugger;
                 this.getView().byId("itemsTable").attachEventOnce("updateFinished", this._restoreAppState, this);
                 let oDetailModel = this.getOwnerComponent().getModel("detailModel");
             },
+
 
             _storeAppState: function (keys) {
                 let oDetailsStateData = {
@@ -40,15 +42,47 @@ sap.ui.define([
                     sMaterialNr: keys.MATERIAL_NR,
                     sStatus: keys.STATUS
                 };
-                jQuery.sap.storage(jQuery.sap.storage.Type.session).put("detailsState", oDetailsStateData);
+                this._onUpdateUrl(oDetailsStateData)
             },
 
             _restoreAppState: function () {
-                let oDetailsStateData = jQuery.sap.storage(jQuery.sap.storage.Type.session).get("detailsState");
-                if (oDetailsStateData) {
-                    this._applyAppState(oDetailsStateData);
+                // Retrieve the encoded app state string from the URL
+                let appStateEncoded = this.getAppStateFromUrl();
+                debugger;
+                var oAppStateData = this.decompressAndDecode(appStateEncoded);
+
+                if (oAppStateData) {
+                    try {
+
+                        // Apply the application state
+                        this._applyAppState(oAppStateData);
+
+                    } catch (e) {
+                        console.error("Error parsing application state data:", e);
+                    }
+                } else {
+                    console.warn("No application state data found in the URL.");
                 }
             },
+
+            _onUpdateUrl: function (oAppStateData) {
+                debugger;
+                var currentUrl = window.location.href;
+                var firstPartUrl = currentUrl.split('/details/')[0];
+                var oUrl = this.getAppStateFromUrl();
+                const appStateEncoded = this.compressAndEncode(oAppStateData);
+        
+                var updatedUrl = '';
+        
+                if (oUrl) {
+                    updatedUrl = firstPartUrl + '?appState=' + appStateEncoded;
+                } else {
+                  updatedUrl = window.location.href + '?appState=' + appStateEncoded;
+                }
+        
+                // Replace the URL in the browser history without reloading
+                window.history.replaceState({}, '', updatedUrl);
+              },
 
             _applyAppState: function (oData) {
                 if (!oData || Object.keys(oData).length === 0) {
@@ -68,7 +102,7 @@ sap.ui.define([
                         oList.setSelectedItem(oItem);
                         oList.scrollToIndex(oList.indexOfItem(oItem));
                         let bReplace = !Device.system.phone;
-                        this.getModel("appView").setProperty("/layout", "ThreeColumnsMidExpanded");
+                        this.getModel("appView").setProperty("/layout", oData.appView.layout);
                         this.getRouter().navTo(
                             "PickTaskDetail",
                             {
@@ -152,9 +186,14 @@ sap.ui.define([
                         oTable.removeSelections();
                     }
                 }
+                var newUrl = this.getAppStateFromUrl();
+                var urlDecoded = this.decompressAndDecode(newUrl);
+                urlDecoded.shippingRequestId = "";
+                urlDecoded.appView.layout = "OneColumn";
+                this._onUpdateUrl(urlDecoded);
+
                 this.getModel("appView").setProperty("/layout", "OneColumn");
-                this.getRouter().navTo("List");
-                this._storeAppState({});
+
             },
 
             getModel: function (sName) {
@@ -278,75 +317,75 @@ sap.ui.define([
             onCancelShippingRequest: function () {
                 let oModel = this.getView().getModel();
                 this._oBundle = this.getView().getModel("i18n").getResourceBundle();
-              
+
                 let detailModel = this.getView().getModel("Header");
                 let shippingRequest = detailModel.getData();
                 delete shippingRequest.__metadata;
                 let sPath = `/ZRFSFBPCDS0001('${shippingRequest.ShippingRequestId}')`;
-              
+
                 let that = this;
-              
+
                 if (shippingRequest.Status === "X") {
-                  MessageBox.warning(that._oBundle.getText("lvShippingRequestAlreadyCancelled", [shippingRequest.ShippingRequestId]));
-                  return;
+                    MessageBox.warning(that._oBundle.getText("lvShippingRequestAlreadyCancelled", [shippingRequest.ShippingRequestId]));
+                    return;
                 }
-              
+
                 MessageBox.confirm(this._oBundle.getText("lvConfirmCancelShippingRequest", [shippingRequest.ShippingRequestId]),
-                  function (oAction) {
-                    if (oAction === MessageBox.Action.OK) {
-                      that._oBusyDialog = new BusyDialog({
-                        text: that._oBundle.getText("lvWaiting")
-                      });
-                      that._oBusyDialog.open();
-              
-                      setTimeout(function () {
-                        let oModelSend = new ODataModel(
-                          oModel.sServiceUrl,
-                          true
-                        );
-                        oModelSend.remove(sPath, {
-                          success: function (data, response) {
-                            if (response.statusCode === "204") {
-                              let oParams = {
-                                type: "Success",
-                                title: that._oBundle.getText("lvStatusCancelledSuccessfully", [shippingRequest.ShippingRequestId])
-                              };
-                              MessagePopoverHook.onSetMessage(that.getView(), oParams);
-                              MessageBox.success(oParams.title);
-              
-                              that.refreshHeaderAndDetails();
-
-                              that._oBusyDialog.close();
-                            }
-                          },
-                          error: function (error) {
-                            let errorResponse = JSON.parse(error.responseText);
-                            let oParams = {
-                              type: "Error",
-                              title: errorResponse.error.message.value
-                            };
-                            MessageBox.error(errorResponse.error.message.value, {
-                              duration: 4000,
-                              closeOnBrowserNavigation: false,
-                              animationDuration: 1000,
-                              width: "20em",
-                              my: "center bottom",
-                              at: "center bottom",
-                              of: window,
-                              autoClose: true,
-                              closeIcon: false
+                    function (oAction) {
+                        if (oAction === MessageBox.Action.OK) {
+                            that._oBusyDialog = new BusyDialog({
+                                text: that._oBundle.getText("lvWaiting")
                             });
-                            MessagePopoverHook.onSetMessage(that.getView(), oParams);
-                            that._oBusyDialog.close();
-                          },
-                        });
-                      }, 3000);
-                    }
-                  }
-                );
-              },
+                            that._oBusyDialog.open();
 
-              refreshHeaderAndDetails: function () {
+                            setTimeout(function () {
+                                let oModelSend = new ODataModel(
+                                    oModel.sServiceUrl,
+                                    true
+                                );
+                                oModelSend.remove(sPath, {
+                                    success: function (data, response) {
+                                        if (response.statusCode === "204") {
+                                            let oParams = {
+                                                type: "Success",
+                                                title: that._oBundle.getText("lvStatusCancelledSuccessfully", [shippingRequest.ShippingRequestId])
+                                            };
+                                            MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                                            MessageBox.success(oParams.title);
+
+                                            that.refreshHeaderAndDetails();
+
+                                            that._oBusyDialog.close();
+                                        }
+                                    },
+                                    error: function (error) {
+                                        let errorResponse = JSON.parse(error.responseText);
+                                        let oParams = {
+                                            type: "Error",
+                                            title: errorResponse.error.message.value
+                                        };
+                                        MessageBox.error(errorResponse.error.message.value, {
+                                            duration: 4000,
+                                            closeOnBrowserNavigation: false,
+                                            animationDuration: 1000,
+                                            width: "20em",
+                                            my: "center bottom",
+                                            at: "center bottom",
+                                            of: window,
+                                            autoClose: true,
+                                            closeIcon: false
+                                        });
+                                        MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                                        that._oBusyDialog.close();
+                                    },
+                                });
+                            }, 3000);
+                        }
+                    }
+                );
+            },
+
+            refreshHeaderAndDetails: function () {
                 // Get the SHIPPING_REQUEST_ID from the event parameters
                 let oHeaderModel = this.getView().getModel("Header");
                 let shippingRequestId = `0000000${oHeaderModel.getData().ShippingRequestId}`;
@@ -385,6 +424,8 @@ sap.ui.define([
                     error: function (oError) {
                     }
                 });
-              }
+            },
+
+
         });
 });
