@@ -6,6 +6,7 @@
     xmlns="sap.m"
     xmlns:semantic="sap.f.semantic"
     xmlns:fb="sap.ui.comp.filterbar"
+    xmlns:custom="br.com.challenge.monitor.challengemonitor.utils"
 >
     <Page
         id="idPage"
@@ -29,16 +30,17 @@
                     />
                 </semantic:titleHeading>
                 <semantic:headerContent>
-                    <fb:FilterBar
+                    <custom:CustomFilterBar
                         id="idFilterBar"
-                        showClearOnFB="false"
+                        showClearOnFB="true"
                         persistencyKey="myPersKey"
+                        clear="onClearFilters"
                         useToolbar="false"
-                        search="onFilterBarSearch"
+                        search="filterTable"
                         filterChange="onFilterBarSearch"
                         showGoOnFB="true"
                     >
-                        <fb:filterGroupItems>
+                        <custom:filterGroupItems>
                             <fb:FilterGroupItem
                                 id="idShippingRequestFilterGroupItem"
                                 label="{i18n>fgShippingRequestItem}"
@@ -81,7 +83,6 @@
                                         tooltip="{i18n>fgStatusTooltip}"
                                     >
                                         <core:Item
-                                            id="idItem"
                                             key="{DomvalueL}"
                                             text="{DomvalueL} - {Ddtext}"
                                         />
@@ -148,8 +149,8 @@
                                     />
                                 </fb:control>
                             </fb:FilterGroupItem>
-                        </fb:filterGroupItems>
-                    </fb:FilterBar>
+                        </custom:filterGroupItems>
+                    </custom:CustomFilterBar>
                 </semantic:headerContent>
                 <semantic:content>
                     <ScrollContainer
@@ -169,6 +170,7 @@
                                 showOverlay="false"
                                 mode="SingleSelectMaster"
                                 selectionChange="onSelectedItem"
+                                alternateRowColors="true"
                             >
                                 <items>
                                     <ColumnListItem

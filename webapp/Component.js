@@ -36,7 +36,8 @@ sap.ui.define([
 
             let detailModel = new JSONModel({
                 "showListFooter": true,
-                "showDetailFooter": false
+                "showDetailFooter": false,
+                "appState": "",
             });
             this.setModel(detailModel, "detailModel");
 

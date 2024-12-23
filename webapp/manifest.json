@@ -124,7 +124,7 @@
                 },
                 {
                     "name": "Details",
-                    "pattern": "details/{SHIPPING_REQUEST_ID}/:appState*:",
+                    "pattern": "details/ShippingRequestId={SHIPPING_REQUEST_ID}/:appState*:",
                     "target": [
                         "list",
                         "details"

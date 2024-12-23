@@ -5,305 +5,289 @@ sap.ui.define([
   "sap/ui/model/FilterOperator",
   "br/com/challenge/monitor/challengemonitor/utils/SearchHelp",
   "sap/m/MessageBox",
-  "sap/m/BusyDialog",
   "br/com/challenge/monitor/challengemonitor/utils/MessagePopover",
   "br/com/challenge/monitor/challengemonitor/utils/PrintForms",
   "sap/ui/Device"
-],
-  /**
-   * @param {typeof sap.ui.core.mvc.Controller} Controller
-   */
-  function (BaseController,
-    formatter,
-    Filter,
-    FilterOperator,
-    SearchHelp,
-    MessageBox,
-    BusyDialog,
-    MessagePopoverHook,
-    PrintForms,
-    Device
-  ) {
-    "use strict";
+], function (
+  BaseController,
+  formatter,
+  Filter,
+  FilterOperator,
+  SearchHelp,
+  MessageBox,
+  MessagePopoverHook,
+  PrintForms,
+  Device
+) {
+  "use strict";
 
-    return BaseController.extend("br.com.challenge.monitor.challengemonitor.controller.List", {
-      Formatter: formatter,
-      SearchHelp: SearchHelp,
-      onInit: function () {
+  return BaseController.extend("br.com.challenge.monitor.challengemonitor.controller.List", {
+    Formatter: formatter,
+    SearchHelp: SearchHelp,
 
-        let popMsgModel = this.getOwnerComponent().getModel("popoverModel");
+    onInit: function () {
+      
+      let popMsgModel = this.getOwnerComponent().getModel("popoverModel");
+      this.getView().byId("shippingsTable").attachEventOnce("updateFinished", this._initializeAppState, this);
+    },
 
-        this.getView().byId("shippingsTable").attachEventOnce("updateFinished", this._restoreAppState, this);
+    // Centralized app state handling
+    _initializeAppState: function () {
+      const appStateEncoded = this.getAppStateFromUrl();
+      debugger;
+      if (appStateEncoded) {
+        const appState = this.decompressAndDecode(appStateEncoded);
+        this._restoreAppState(appState);
+      } else {
+        this._loadDefaultView();
+      }
+    },
 
-      },
+    _saveAppState: function () {
+      const appState = this._getCurrentAppState();
+      const currentUrl = window.location.href;
+      debugger;
+      // Extract the base URL considering 'display'
+      let baseUrl;
+      if (
+        currentUrl.includes("display") &&
+        (currentUrl.includes("?", currentUrl.indexOf("display")) || currentUrl.includes("&", currentUrl.indexOf("display")))
+      ) {
+        // Determine the position of the first `?` or `&` after "display"
+        const questionMarkIndex = currentUrl.indexOf("?", currentUrl.indexOf("display"));
+        const ampersandIndex = currentUrl.indexOf("&", currentUrl.indexOf("display"));
+      
+        // Find the earliest occurrence of `?` or `&` after "display"
+        const cutoffIndex = questionMarkIndex !== -1 && ampersandIndex !== -1
+          ? Math.min(questionMarkIndex, ampersandIndex)
+          : questionMarkIndex !== -1
+          ? questionMarkIndex
+          : ampersandIndex;
+      
+        baseUrl = cutoffIndex !== -1 ? currentUrl.substring(0, cutoffIndex) : currentUrl;
+      } else {
+        baseUrl = currentUrl;
+      }
 
-      _restoreAppState: function () {
-        // Retrieve the encoded app state string from the URL
-        let appStateEncoded = this.getAppStateFromUrl();
-        debugger;
-        var oAppStateData = this.decompressAndDecode(appStateEncoded);
+      // Encode the appState object
+      const appStateEncoded = this.compressAndEncode(appState);
 
-        if (oAppStateData) {
-            // Apply the application state
-            this._applyAppState(oAppStateData);
+      // Construct the new URL based on whether appState.selectedItem exists
+      let newUrl;
+      if (appState.selectedItem) {
+        newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}/?appState=${appStateEncoded}`;
+      } else {
+        newUrl = `${baseUrl}?appState=${appStateEncoded}`;
+      }
 
-            // Optionally, restore filters if they are stored together
-            this._applyFilters(oAppStateData.filters);
-        } else {
-          console.warn("No application state data found in the URL.");
+      // Update the browser's URL without reloading the page
+      window.history.replaceState({}, "", newUrl);
+    },
+
+    _restoreAppState: function (appState) {
+      if (appState.filters) {
+        this._applyFilters(appState.filters);
+      }
+      if (appState.selectedItem) {
+        this._restoreSelectedItem(appState.selectedItem);
+      }
+      if (appState.filterVisibility) {
+        this._restoreFilterVisibility(appState.filterVisibility);
+      }
+    },
+
+    _getCurrentAppState: function () {
+      const filters = this._getCurrentFilters();
+      const selectedItem = this._getSelectedItem();
+      const filterVisibility = this._getFilterVisibility();
+
+      return {
+        filters,
+        selectedItem,
+        filterVisibility
+      };
+    },
+
+    // Modular functions for specific tasks
+    _applyFilters: function (filters) {
+      const { shippingRequestId, status, customerId, plantOrigin, createdBy } = filters;
+      this.getView().byId("idShippingRequestItemFilter").setValue(shippingRequestId || "");
+      this.getView().byId("statusFilter").setSelectedKeys(status || []);
+      this.getView().byId("customerIdFilter").setValue(customerId || "");
+      this.getView().byId("plantOriginFilter").setValue(plantOrigin || "");
+      this.getView().byId("createdByFilter").setValue(createdBy || "");
+      this.filterTable(filters);
+    },
+
+    filterTable: function (filters) {
+      debugger;
+      const oTable = this.getView().byId("shippingsTable");
+      const oBinding = oTable.getBinding("items");
+
+      if (!oBinding) {
+        console.warn("No binding found for table items. Ensure the table has a valid binding context.");
+        return;
+      }
+
+      const aFilters = [];
+
+      // Extract filter values
+      const shippingRequestId = this.getView().byId("idShippingRequestItemFilter").getValue();
+      const status = this.getView().byId("statusFilter").getSelectedKeys();
+      const customerId = this.getView().byId("customerIdFilter").getValue();
+      const plantOrigin = this.getView().byId("plantOriginFilter").getValue();
+      const createdBy = this.getView().byId("createdByFilter").getValue();
+
+      // Add filters based on values
+      if (shippingRequestId) {
+        aFilters.push(new Filter("ShippingRequestId", FilterOperator.EQ, shippingRequestId));
+      }
+
+      if (status && status.length) {
+        const aStatusFilters = status.map(statusKey => new Filter("Status", FilterOperator.Contains, statusKey));
+        aFilters.push(new Filter({ filters: aStatusFilters, and: false }));
+      }
+
+      if (customerId) {
+        aFilters.push(new Filter("CustomerId", FilterOperator.Contains, customerId));
+      }
+
+      if (plantOrigin) {
+        aFilters.push(new Filter("PlantOrigin", FilterOperator.Contains, plantOrigin));
+      }
+
+      if (createdBy) {
+        aFilters.push(new Filter("CreatedBy", FilterOperator.Contains, createdBy));
+      }
+
+      // Apply the filters to the binding
+      oBinding.filter(aFilters);
+
+      // Save the application state after applying filters
+      this._saveAppState();
+    },
+
+    _restoreSelectedItem: function (selectedItemId) {
+      const oTable = this.getView().byId("shippingsTable");
+      const aItems = oTable.getItems();
+      aItems.forEach(item => {
+        const context = item.getBindingContext().getObject();
+        if (context.ShippingRequestId === selectedItemId) {
+          oTable.setSelectedItem(item);
+          oTable.scrollToIndex(oTable.indexOfItem(item));
         }
-      },
+      });
+    },
 
-      _applyFilters: function (filters) {
-        // Apply filters to respective filter fields
-        if (filters) {
-          this.getView().byId("idShippingRequestItemFilter").setValue(filters.shippingRequestId);
-          this.getView().byId("statusFilter").setSelectedKeys(filters.status);
-          this.getView().byId("customerIdFilter").setValue(filters.customerId);
-          this.getView().byId("plantOriginFilter").setValue(filters.plantOrigin);
-          this.getView().byId("createdByFilter").setValue(filters.createdBy);
-
-          // Trigger search or update view as per your application flow
-          this.onFilterBarSearch(filters);
+    _restoreFilterVisibility: function (visibility) {
+      const oFilterBar = this.getView().byId("idFilterBar");
+      const aFilterItems = oFilterBar.getFilterGroupItems();
+      visibility.forEach(visibleItem => {
+        const oFilterGroupItem = aFilterItems.find(item => item.getName() === visibleItem.name);
+        if (oFilterGroupItem) {
+          oFilterGroupItem.setVisibleInFilterBar(visibleItem.visible);
         }
-      },
+      });
+    },
 
-      _applyAppState: function (oData) {
+    _getCurrentFilters: function () {
+      return {
+        shippingRequestId: this.getView().byId("idShippingRequestItemFilter").getValue(),
+        status: this.getView().byId("statusFilter").getSelectedKeys(),
+        customerId: this.getView().byId("customerIdFilter").getValue(),
+        plantOrigin: this.getView().byId("plantOriginFilter").getValue(),
+        createdBy: this.getView().byId("createdByFilter").getValue()
+      };
+    },
 
-        if (oData) {
-          let oList = this.getView().byId("shippingsTable");
-          let aItems = oList.getItems();
-          aItems.forEach((oItem) => {
-            let oBindingContext = oItem.getBindingContext();
-            let oItemData = oBindingContext.getObject();
-            if (oItemData.ShippingRequestId === oData.shippingRequestId) {
-              oList.setSelectedItem(oItem);
-              oList.scrollToIndex(oList.indexOfItem(oItem));
-              let oDetailModel = this.getOwnerComponent().getModel("detailModel");
-              oDetailModel.setProperty("/showListFooter", oData.showListFooter);
-              oDetailModel.setProperty("/showDetailFooter", oData.showDetailFooter);
-              // Navigate to Details view with selected ShippingRequestId
-              let bReplace = !sap.ui.Device.system.phone;
-              this.getModel("appView").setProperty("/layout", oData.appView.layout);
-              this.getRouter().navTo(
-                "Details",
-                {
-                  SHIPPING_REQUEST_ID: oData.shippingRequestId
-                },
-                bReplace
-              );
+    _getSelectedItem: function () {
+      const oTable = this.getView().byId("shippingsTable");
+      const oSelectedItem = oTable.getSelectedItem();
+      return oSelectedItem ? oSelectedItem.getBindingContext().getProperty("ShippingRequestId") : null;
+    },
 
+    _getFilterVisibility: function () {
+      const oFilterBar = this.getView().byId("idFilterBar");
+      return oFilterBar.getFilterGroupItems().map(item => ({
+        name: item.getName(),
+        visible: item.getVisibleInFilterBar()
+      }));
+    },
+
+    // Utility functions
+    getModel: function (sName) {
+      return this.getOwnerComponent().getModel(sName) || this.getView().getModel(sName);
+    },
+
+    getRouter: function () {
+      return this.getOwnerComponent().getRouter();
+    },
+
+    // Event Handlers
+    onFilterBarSearch: function () {
+      this._saveAppState();
+    },
+
+    onSelectedItem: function (oEvent) {
+      debugger;
+      const oSelectedItem = oEvent.getParameter("listItem");
+      const oContext = oSelectedItem.getBindingContext();
+      const selectedItemId = oContext.getProperty("ShippingRequestId");
+      this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+      this.getRouter().navTo("Details", { SHIPPING_REQUEST_ID: selectedItemId });
+      this._saveAppState();
+    },
+
+    onClearFilters: function () {
+      const oFilterBar = this.getView().byId("idFilterBar"); // Replace with your FilterBar's ID
+      if (oFilterBar) {
+        const aFilterGroupItems = oFilterBar.getFilterGroupItems();
+
+        // Clear each filter control
+        aFilterGroupItems.forEach((oFilterGroupItem) => {
+          const oControl = oFilterGroupItem.getControl();
+          if (oControl) {
+            // Reset different control types appropriately
+            if (typeof oControl.setValue === "function") {
+              oControl.setValue(""); // Clear Input fields
             }
-          });
-
-        } else {
-          // Handle case where no item was selected or oData.listSelected is not valid
-          // Adjust UI or show appropriate message
-        }
-      },
-
-      _storeAppState: function () {
-        let oSelectedItems = this.getView().byId("shippingsTable").getSelectedItems();
-
-        let shippingRequestIdFilterValue = this.getView().byId("idShippingRequestItemFilter").getValue();
-        let statusFilter = this.getView().byId("statusFilter").getSelectedKeys();
-        let customerIdFilterValue = this.getView().byId("customerIdFilter").getValue();
-        let plantOriginFilterValue = this.getView().byId("plantOriginFilter").getValue();
-        let createdByFilterValue = this.getView().byId("createdByFilter").getValue();
-        let oShippingRequestId = "";
-        //get the detailModel values for footers
-        let oDetailModel = this.getOwnerComponent().getModel("detailModel");
-        let showListFooter = oDetailModel.getProperty("/showListFooter");
-        let showDetailFooter = oDetailModel.getProperty("/showDetailFooter");
-
-        if (oSelectedItems.length > 0) {
-          oShippingRequestId = oSelectedItems[0].getBindingContext().getProperty("ShippingRequestId");
-        }
-        let oAppStateData = {
-          shippingRequestId: oShippingRequestId,
-          showListFooter: showListFooter,
-          showDetailFooter: showDetailFooter,
-          filters: {
-            shippingRequestId: shippingRequestIdFilterValue,
-            status: statusFilter,
-            customerId: customerIdFilterValue,
-            plantOrigin: plantOriginFilterValue,
-            createdBy: createdByFilterValue
+            if (typeof oControl.setSelectedKeys === "function") {
+              oControl.setSelectedKeys([]); // Clear MultiComboBox or similar controls
+            }
+            if (typeof oControl.setSelected === "function") {
+              oControl.setSelected(false); // Clear CheckBox or RadioButton controls
+            }
           }
-        };
-
-        this._onUpdateUrl(oAppStateData)
-
-      },
-
-      _onUpdateUrl: function (oAppStateData) {
-        debugger;
-        var oUrl = this.getAppStateFromUrl();
-        const appStateEncoded = this.compressAndEncode(oAppStateData);
-
-        // var hasParams = window.location.href.indexOf('?') > -1;
-        var updatedUrl = '';
-
-        if (oUrl) {
-          updatedUrl = window.location.href.replace(/appState=([^&]*)/, 'appState=' + appStateEncoded);
-        } else {
-          updatedUrl = window.location.href + '?appState=' + appStateEncoded;
-        }
-
-        // Replace the URL in the browser history without reloading
-        window.history.replaceState({}, '', updatedUrl);
-      },
-
-      onExit: function () {
-        this._storeAppState();
-      },
-
-      onSelectedItem: function (oEvent) {
-        let bReplace = !Device.system.phone;
-        let oSelectedItem = oEvent.getParameter("listItem");
-        let oContext = oSelectedItem.getBindingContext();
-        let oShippingRequestId = oContext.getProperty("ShippingRequestId");
-        let oDetailModel = this.getOwnerComponent().getModel("detailModel");
-        oDetailModel.setProperty("/showListFooter", false);
-        oDetailModel.setProperty("/showDetailFooter", true);
-        debugger;
-        var oUrl = this.getAppStateFromUrl();
-        var oAppStateData = {};
-        if (oUrl) {
-          oAppStateData = this.decompressAndDecode(oUrl);
-        }
-        oAppStateData.shippingRequestId = oShippingRequestId;
-        oAppStateData.showListFooter = false;
-        oAppStateData.showDetailFooter = true;
-        oAppStateData.appView = {
-          layout: "TwoColumnsBeginExpanded"
-        }
-
-        this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
-        this.getRouter().navTo(
-          "Details",
-          {
-            SHIPPING_REQUEST_ID: oShippingRequestId,
-          },
-          bReplace
-        );
-
-        // Update the URL after navTo completes
-        setTimeout(() => {
-          this._onUpdateUrl(oAppStateData);
-        }, 0);
-      },
-
-      getRouter: function () {
-        return this.getOwnerComponent().getRouter();
-      },
-
-      getModel: function (sName) {
-        return this.getView().getModel(sName);
-      },
-
-      onFilterBarSearch: function (event) {
-
-        if (event && event.getSource && event.getSource().getMetadata().getName() === "sap.ui.comp.filterbar.FilterBar") {
-          // Store the application state only for a button event
-          this._storeAppState();
-        }
-
-        let shippingRequestIdFilter = this.getView().byId("idShippingRequestItemFilter");
-        let statusFilter = this.getView().byId("statusFilter");
-        let customerIdFilter = this.getView().byId("customerIdFilter");
-        let plantOriginFilter = this.getView().byId("plantOriginFilter");
-        let createdByFilter = this.getView().byId("createdByFilter");
-
-        let aFilters = [];
-
-        if (shippingRequestIdFilter.getValue()) {
-          aFilters.push(
-            new Filter({
-              path: "ShippingRequestId",
-              operator: FilterOperator.EQ,
-              value1: shippingRequestIdFilter.getValue()
-            })
-          );
-        }
-        if (statusFilter) {
-          let aStatusFilters = [];
-          let aSelectedKeys = statusFilter.getSelectedKeys();
-          if (aSelectedKeys.length > 0) {
-            aSelectedKeys.forEach(function (sKey) {
-              aStatusFilters.push(new Filter({
-                path: "Status",
-                operator: FilterOperator.Contains,
-                value1: sKey
-              }));
-            });
-            aFilters.push(new Filter({
-              filters: aStatusFilters,
-              and: false
-            }))
-
-          }
-
-        }
-        if (customerIdFilter.getValue()) {
-          aFilters.push(
-            new Filter({
-              path: "CustomerId",
-              operator: FilterOperator.Contains,
-              value1: customerIdFilter.getValue()
-            })
-          )
-        }
-        if (plantOriginFilter.getValue()) {
-          aFilters.push(
-            new Filter({
-              path: "PlantOrigin",
-              operator: FilterOperator.Contains,
-              value1: plantOriginFilter.getValue()
-            })
-          );
-        }
-        if (createdByFilter.getValue()) {
-          aFilters.push(
-            new Filter({
-              path: "CreatedBy",
-              operator: FilterOperator.Contains,
-              value1: createdByFilter.getValue()
-            })
-          );
-        }
-        let oFinalFilter = new Filter({
-          filters: aFilters,
-          and: true
         });
 
-        var oTable = this.getView().byId("shippingsTable");
-        let oBinding = oTable.getBinding("items");
-        oBinding.filter(oFinalFilter);
+        // Optionally trigger the search to update the results
+        this.filterTable({});
+        this._saveAppState();
+      } else {
+        console.error("FilterBar not found.");
+      }
+    },
 
-      },
+    onMessagesButtonPress: function (oEvent) {
+      MessagePopoverHook.onMessagesPopoverOpen(oEvent);
+    },
 
-      onMessagesButtonPress: function (oEvent) {
-        MessagePopoverHook.onMessagesPopoverOpen(oEvent);
-      },
+    onPrintForms: function () {
+      const oModel = this.getView().getModel();
+      const oTable = this.getView().byId("shippingsTable");
+      const oSelectedItem = oTable.getSelectedItem();
 
-      onPrintForms: function () {
-        let oModel = this.getView().getModel();
-        let oTable = this.getView().byId("shippingsTable");
-        let oSelectedItem = oTable.getSelectedItem();
-        this._oBundle = this.getView().getModel("i18n").getResourceBundle();
+      if (!oSelectedItem) {
+        MessageBox.warning(this.getView().getModel("i18n").getResourceBundle().getText("lvSelectAtLeastOneShippingRequest"));
+        return;
+      }
 
+      const oContext = oSelectedItem.getBindingContext();
+      PrintForms.onPrintPress(this.getView(), oContext);
+    },
 
-        if (!oSelectedItem) {
-          MessageBox.warning(that._oBundle.getText("lvSelectAtLeastOneShippingRequest"));
-          return;
-        }
-
-        let that = this
-        let oContext = oSelectedItem.getBindingContext();
-        PrintForms.onPrintPress(this.getView(), oContext);
-      },
-
-    });
-
+    _loadDefaultView: function () {
+      this.filterTable({});
+    }
   });
+});

@@ -8,12 +8,12 @@ sap.ui.define([
     let PrintForms = {
 
         onPrintPress: function (oView, oContext) {
-            this.PreviewSmartform(oView, "ZRFSFBPSF0001", {
+            this._previewSmartform(oView, "ZRFSFBPSF0001", {
                 ShippingRequestId: oContext.getObject().ShippingRequestId,
             });
         },
 
-        PreviewSmartform: function (oView, FormName, Params
+        _previewSmartform: function (oView, FormName, Params
         ) {
             var Viewer = new sap.m.PDFViewer();
 

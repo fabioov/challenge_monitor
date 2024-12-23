@@ -30,7 +30,6 @@ sap.ui.define([
                 this.getOwnerComponent().getRouter().getRoute("Details").attachPatternMatched(this._onBindingDetails, this);
                 debugger;
                 this.getView().byId("itemsTable").attachEventOnce("updateFinished", this._restoreAppState, this);
-                let oDetailModel = this.getOwnerComponent().getModel("detailModel");
             },
 
 
@@ -47,11 +46,12 @@ sap.ui.define([
 
             _restoreAppState: function () {
                 // Retrieve the encoded app state string from the URL
-                let appStateEncoded = this.getAppStateFromUrl();
+                var oDetailModel = this.getOwnerComponent().getModel("detailModel");
+                var appStateEncoded = oDetailModel.getProperty("/appState");
                 debugger;
-                var oAppStateData = this.decompressAndDecode(appStateEncoded);
 
-                if (oAppStateData) {
+                if (appStateEncoded) {
+                    var oAppStateData = this.decompressAndDecode(appStateEncoded);
                     try {
 
                         // Apply the application state
@@ -68,21 +68,21 @@ sap.ui.define([
             _onUpdateUrl: function (oAppStateData) {
                 debugger;
                 var currentUrl = window.location.href;
-                var firstPartUrl = currentUrl.split('/details/')[0];
+                var firstPartUrl = currentUrl.split('&/details/')[0];
                 var oUrl = this.getAppStateFromUrl();
                 const appStateEncoded = this.compressAndEncode(oAppStateData);
-        
+
                 var updatedUrl = '';
-        
+
                 if (oUrl) {
                     updatedUrl = firstPartUrl + '?appState=' + appStateEncoded;
                 } else {
-                  updatedUrl = window.location.href + '?appState=' + appStateEncoded;
+                    updatedUrl = window.location.href + '?appState=' + appStateEncoded;
                 }
-        
+
                 // Replace the URL in the browser history without reloading
                 window.history.replaceState({}, '', updatedUrl);
-              },
+            },
 
             _applyAppState: function (oData) {
                 if (!oData || Object.keys(oData).length === 0) {
@@ -112,7 +112,8 @@ sap.ui.define([
                                 MATERIAL_NR: oData.sMaterialNr,
                                 STATUS: oData.sStatus
                             },
-                            bReplace
+
+                            { replace: bReplace }
                         );
 
                     }
@@ -126,9 +127,12 @@ sap.ui.define([
             },
 
             _onBindingDetails: function (oEvent) {
-
+                debugger;
                 // Get the SHIPPING_REQUEST_ID from the event parameters
                 let shippingRequestId = `0000000${oEvent.getParameter("arguments").SHIPPING_REQUEST_ID}`;
+
+                var oDetailModel = this.getOwnerComponent().getModel("detailModel");
+                var oAppState = oDetailModel.getProperty("/appState");
 
                 // Get the view and the OData model
                 let oView = this.getView();
@@ -165,6 +169,16 @@ sap.ui.define([
                     }
                 });
 
+                if (oAppState) {
+                    var currentUrl = window.location.href;
+                    var firstPartUrl = currentUrl.split('?appState')[0];
+                    var newUrl = `${firstPartUrl}?appState=${oAppState}`;
+
+                    window.history.replaceState({}, '', newUrl);
+                }
+
+
+
             },
 
             onCloseDetailView: function () {
@@ -187,11 +201,13 @@ sap.ui.define([
                     }
                 }
                 var newUrl = this.getAppStateFromUrl();
-                var urlDecoded = this.decompressAndDecode(newUrl);
-                urlDecoded.shippingRequestId = "";
-                urlDecoded.appView.layout = "OneColumn";
-                this._onUpdateUrl(urlDecoded);
+                if (newUrl) {
+                    var urlDecoded = this.decompressAndDecode(newUrl);
+                    urlDecoded.shippingRequestId = "";
+                    urlDecoded.appView.layout = "OneColumn";
+                    this._onUpdateUrl(urlDecoded);
 
+                }
                 this.getModel("appView").setProperty("/layout", "OneColumn");
 
             },
@@ -235,7 +251,8 @@ sap.ui.define([
                         MATERIAL_NR: sMaterialNr,
                         STATUS: sStatus
                     },
-                    bReplace
+
+                    { replace: bReplace }
                 );
             },
             onChangeStatus: function (oEvent) {
