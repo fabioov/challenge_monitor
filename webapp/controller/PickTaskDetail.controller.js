@@ -83,7 +83,7 @@ sap.ui.define([
 
 				// Get the List view by its ID
 				let oListView = oComponent.byId("details");
-				let oModel = this.getModel("PickTaskDetail");
+				let oModel = this._getModel("PickTaskDetail");
 				let oData = oModel.getData();
 				let sShippingRequestId = oData.SHIPPING_REQUEST_ID;
 
@@ -96,20 +96,20 @@ sap.ui.define([
 						oTable.removeSelections();
 					}
 				}
-				this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
-				this.getRouter().navTo("Details",
+				this._getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+				this._getRouter().navTo("Details",
 					{
 						SHIPPING_REQUEST_ID: sShippingRequestId
 					});
-					jQuery.sap.storage(jQuery.sap.storage.Type.session).put("detailsState", {});
+				jQuery.sap.storage(jQuery.sap.storage.Type.session).put("detailsState", {});
 
 			},
 
-			getModel: function (sName) {
+			_getModel: function (sName) {
 				return this.getView().getModel(sName);
 			},
 
-			getRouter: function () {
+			_getRouter: function () {
 				return this.getOwnerComponent().getRouter();
 			},
 
@@ -168,10 +168,12 @@ sap.ui.define([
 			},
 
 			onCloseDialog: function () {
-				if (this._ItemHistory) {
+				if (this._ItemHistory && this._ItemHistory.isOpen()) {
 					this._ItemHistory.close();
-				} else if (this._oPickingTaskListDialog) {
+					console.log("ItemHistory closed");
+				} else if (this._oPickingTaskListDialog && this._oPickingTaskListDialog.isOpen()) {
 					this._oPickingTaskListDialog.close();
+					console.log("PickingTaskListDialog closed");
 				}
 			},
 
@@ -194,14 +196,14 @@ sap.ui.define([
 				];
 
 				// Read data from the entity set asynchronously
-				this.readPickingTaskData(oModel, aFilters)
+				this._readPickingTaskData(oModel, aFilters)
 					.then(function (oData) {
 						console.log("Data Items Read:", oData);
 						let oJSONModel = new sap.ui.model.json.JSONModel(oData);
 						oView.setModel(oJSONModel, "PickingTaskList");
 
 						// Open the dialog after data is loaded
-						this.openPickingTaskListDialog();
+						this._openPickingTaskListDialog();
 					}.bind(this))
 					.catch(function (oError) {
 						console.error(oBundle.getText("pdtErrorFetchingData"), oError);
@@ -210,7 +212,7 @@ sap.ui.define([
 			},
 
 			// Reading Data for PickTaskDialog
-			readPickingTaskData: function (oModel, aFilters) {
+			_readPickingTaskData: function (oModel, aFilters) {
 				return new Promise(function (resolve, reject) {
 					let sPath = "/ZRFSFBPCDS0002";
 					oModel.read(sPath, {
@@ -226,7 +228,7 @@ sap.ui.define([
 			},
 
 			// Opening PickingTaskDialog
-			openPickingTaskListDialog: function () {
+			_openPickingTaskListDialog: function () {
 				let oView = this.getView();
 				if (!this._oPickingTaskListDialog) {
 					sap.ui.core.Fragment.load({
@@ -317,14 +319,14 @@ sap.ui.define([
 				this._oBusyDialog.open();
 
 				// Call getSelectedItemsForRestart which returns a promise
-				this.getSelectedItems(oTable).then((aItems) => {
+				this._getSelectedItems(oTable).then((aItems) => {
 					// Proceed to restart items (excluding those with PICKING_TASK_ID)
 					if (sButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnRestart")) {
-						this.restartMultipleItems(aItems);
+						this._restartMultipleItems(aItems);
 					} else if (sButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnDelete")) {
-						this.deleteMultipleItems(aItems);
+						this._deleteMultipleItems(aItems);
 					} else if (sButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnCreate")) {
-						this.createMultipleItems(aItems);
+						this._createMultipleItems(aItems);
 					}
 				}).catch((error) => {
 					console.error(oBundle.getText("pdtErroGettingSelectedItems"), error);
@@ -332,7 +334,7 @@ sap.ui.define([
 				// }
 			},
 
-			getSelectedItems: function (oTable) {
+			_getSelectedItems: function (oTable) {
 				var oBundle = this.getView().getModel("i18n").getResourceBundle();
 				return new Promise((resolve, reject) => {
 					let aItems = [];
@@ -343,12 +345,12 @@ sap.ui.define([
 
 					// Function to fetch the next PickingTaskId if needed
 					const fetchPickingTaskId = () => {
-						return this.functionGetNextId("01", "ZRFSRG0002");
+						return this._functionGetNextId("01", "ZRFSRG0002");
 					};
 
 					// Loop through each item in the table
 					oTable.getItems().forEach((oItem) => {
-						let oItemData = this.getSelectedItemData(oItem);
+						let oItemData = this._getSelectedItemData(oItem);
 
 						if (oItemData) {
 							bItemSelected = true;
@@ -399,7 +401,7 @@ sap.ui.define([
 
 			},
 
-			getSelectedItemData: function (oItem) {
+			_getSelectedItemData: function (oItem) {
 				let oItemData = null;
 				let aCells = oItem.getCells();
 
@@ -417,7 +419,7 @@ sap.ui.define([
 				return oItemData;
 			},
 
-			deleteMultipleItems: function (items) {
+			_deleteMultipleItems: function (items) {
 				let oView = this.getView();
 				let oModel = oView.getModel();
 				let sGroupId = "batchDeleteGroup";
@@ -448,8 +450,8 @@ sap.ui.define([
 									description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [oItem.DELIVERY_ITEM_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR])
 								};
 								MessagePopoverHook.onSetMessage(oView, oMessageParams);
-								that.bindTable(oItem.SHIPPING_REQUEST_ID);
-								that.refreshView(oItem.DELIVERY_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR);
+								that._bindTable(oItem.SHIPPING_REQUEST_ID);
+								that._refreshView(oItem.DELIVERY_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR);
 								that._oBusyDialog.close();
 							},
 							error: (oError) => {
@@ -472,7 +474,7 @@ sap.ui.define([
 			},
 
 
-			restartMultipleItems: function (items) {
+			_restartMultipleItems: function (items) {
 				let oView = this.getView();
 				let oModel = oView.getModel();
 				let sGroupId = "batchRestartGroup";
@@ -503,8 +505,8 @@ sap.ui.define([
 									description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [oItem.DELIVERY_ITEM_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR])
 								};
 								MessagePopoverHook.onSetMessage(oView, oMessageParams);
-								that.bindTable(oItem.SHIPPING_REQUEST_ID);
-								that.refreshView(oItem.DELIVERY_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR);
+								that._bindTable(oItem.SHIPPING_REQUEST_ID);
+								that._refreshView(oItem.DELIVERY_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR);
 								that._oBusyDialog.close();
 							},
 							error: (oError) => {
@@ -520,7 +522,7 @@ sap.ui.define([
 
 			},
 
-			createMultipleItems: function (items) {
+			_createMultipleItems: function (items) {
 				let oView = this.getView();
 				let oModel = oView.getModel();
 				let sGroupId = "batchCreateGroup";
@@ -545,8 +547,8 @@ sap.ui.define([
 									description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [oItem.DELIVERY_ITEM_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR])
 								};
 								MessagePopoverHook.onSetMessage(oView, oMessageParams);
-								that.bindTable(oData.SHIPPING_REQUEST_ID);
-								that.refreshView(oData.DELIVERY_NR, oData.DELIVERY_ITEM_NR, oData.MATERIAL_NR);
+								that._bindTable(oData.SHIPPING_REQUEST_ID);
+								that._refreshView(oData.DELIVERY_NR, oData.DELIVERY_ITEM_NR, oData.MATERIAL_NR);
 								that._oBusyDialog.close();
 							},
 							error: (oError) => {
@@ -555,14 +557,14 @@ sap.ui.define([
 						});
 					});
 
-					this.onSubmitChanges(sGroupId)
+					this._onSubmitChanges(sGroupId)
 				}.bind(this)).catch((error) => {
 					that._oBusyDialog.close();
 
 				});
 			},
 
-			onSubmitChanges: function (sGroupId) {
+			_onSubmitChanges: function (sGroupId) {
 				let oView = this.getView();
 				let oModel = oView.getModel();
 				let that = this;
@@ -578,7 +580,7 @@ sap.ui.define([
 
 			},
 
-			bindTable: function (shippingRequestId) {
+			_bindTable: function (shippingRequestId) {
 				let oView = this.getView();
 				let oModel = oView.getModel();
 				let oTable = oView.byId("pickTaskTableDialog");
@@ -603,7 +605,7 @@ sap.ui.define([
 				});
 			},
 
-			refreshView: function (deliveryNr, deliveryItemNr, materialNr) {
+			_refreshView: function (deliveryNr, deliveryItemNr, materialNr) {
 				let oView = this.getView();
 				let oModel = oView.getModel();
 				let aFilters = [];
@@ -636,7 +638,7 @@ sap.ui.define([
 				});
 			},
 
-			functionGetNextId: function (nrRange, object) {
+			_functionGetNextId: function (nrRange, object) {
 				return new Promise((resolve, reject) => {
 					let oView = this.getView();
 					let oModel = oView.getModel();

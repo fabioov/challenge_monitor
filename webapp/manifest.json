@@ -132,18 +132,11 @@
                 },
                 {
                     "name": "PickTaskDetail",
-                    "pattern": "details/{SHIPPING_REQUEST_ID}/picktaskdetail/{DELIVERY_NR}/{DELIVERY_ITEM_NR}/{MATERIAL_NR}/{STATUS}/:appState*:",
+                    "pattern": "details/{SHIPPING_REQUEST_ID}/picktaskdetail/{DELIVERY_NR}/{DELIVERY_ITEM_NR}/{MATERIAL_NR}/{STATUS}",
                     "target": [
                         "list",
                         "details",
                         "picktaskdetail"
-                    ]
-                },
-                {
-                    "name": "Scan",
-                    "pattern": "",
-                    "target": [
-                        "scan"
                     ]
                 }
             ],
@@ -151,22 +144,20 @@
                 "list": {
                     "viewId": "list",
                     "viewName": "List",
-                    "controlAggregation": "beginColumnPages"
+                    "controlAggregation": "beginColumnPages",
+                    "clearControlAggregation": true
                 },
                 "details": {
                     "viewId": "details",
                     "viewName": "Details",
-                    "controlAggregation": "midColumnPages"
+                    "controlAggregation": "midColumnPages",
+                    "clearControlAggregation": true
                 },
                 "picktaskdetail": {
                     "viewId": "picktaskdetail",
                     "viewName": "PickTaskDetail",
-                    "controlAggregation": "endColumnPages"
-                },
-                "scan": {
-                    "viewId": "scan",
-                    "viewName": "Scan",
-                    "controlAggregation": "beginColumnPages"
+                    "controlAggregation": "endColumnPages",
+                    "clearControlAggregation": true
                 }
             }
         },

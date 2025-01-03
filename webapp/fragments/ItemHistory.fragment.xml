@@ -161,7 +161,7 @@
             <Button
                 id="IdCloseButton"
                 text="{i18n>btnClose}"
-                press="onCloseDialog"
+                press=".onCloseDialog"
             />
         </beginButton>
     </Dialog>

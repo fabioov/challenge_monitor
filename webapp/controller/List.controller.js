@@ -16,8 +16,7 @@ sap.ui.define([
   SearchHelp,
   MessageBox,
   MessagePopoverHook,
-  PrintForms,
-  Device
+  PrintForms
 ) {
   "use strict";
 
@@ -26,27 +25,32 @@ sap.ui.define([
     SearchHelp: SearchHelp,
 
     onInit: function () {
-      
+
       let popMsgModel = this.getOwnerComponent().getModel("popoverModel");
-      this.getView().byId("shippingsTable").attachEventOnce("updateFinished", this._initializeAppState, this);
+      this.getView().byId("shippingsTable").attachEventOnce("updateFinished", this._initializeAppState.bind(this));
+
     },
 
-    // Centralized app state handling
     _initializeAppState: function () {
-      const appStateEncoded = this.getAppStateFromUrl();
-      debugger;
-      if (appStateEncoded) {
-        const appState = this.decompressAndDecode(appStateEncoded);
+      if (this._appStateInitialized) return;
+      this._appStateInitialized = true;
+
+      this._appStateEncoded = this.getAppStateFromUrl();
+      if (this._appStateEncoded) {
+        const appState = this.decompressAndDecode(this._appStateEncoded);
         this._restoreAppState(appState);
-      } else {
-        this._loadDefaultView();
+        this._saveToAppStateModel(this._appStateEncoded);
       }
+    },
+
+    _saveToAppStateModel: function (appState) {
+      let appStateModel = this.getOwnerComponent().getModel("appStateModel");
+      appStateModel.setProperty("/appState", appState);
     },
 
     _saveAppState: function () {
       const appState = this._getCurrentAppState();
       const currentUrl = window.location.href;
-      debugger;
       // Extract the base URL considering 'display'
       let baseUrl;
       if (
@@ -56,14 +60,14 @@ sap.ui.define([
         // Determine the position of the first `?` or `&` after "display"
         const questionMarkIndex = currentUrl.indexOf("?", currentUrl.indexOf("display"));
         const ampersandIndex = currentUrl.indexOf("&", currentUrl.indexOf("display"));
-      
+
         // Find the earliest occurrence of `?` or `&` after "display"
         const cutoffIndex = questionMarkIndex !== -1 && ampersandIndex !== -1
           ? Math.min(questionMarkIndex, ampersandIndex)
           : questionMarkIndex !== -1
-          ? questionMarkIndex
-          : ampersandIndex;
-      
+            ? questionMarkIndex
+            : ampersandIndex;
+
         baseUrl = cutoffIndex !== -1 ? currentUrl.substring(0, cutoffIndex) : currentUrl;
       } else {
         baseUrl = currentUrl;
@@ -81,12 +85,14 @@ sap.ui.define([
       }
 
       // Update the browser's URL without reloading the page
-      window.history.replaceState({}, "", newUrl);
+      window.history.replaceState({ path: newUrl }, "", newUrl);
     },
 
     _restoreAppState: function (appState) {
+      this._isRestoringState = true; // Flag to indicate restoration is in progress
+
       if (appState.filters) {
-        this._applyFilters(appState.filters);
+        this._applyFilters(appState.filters, true); // Pass isRestoring = true
       }
       if (appState.selectedItem) {
         this._restoreSelectedItem(appState.selectedItem);
@@ -94,6 +100,8 @@ sap.ui.define([
       if (appState.filterVisibility) {
         this._restoreFilterVisibility(appState.filterVisibility);
       }
+
+      this._isRestoringState = false; // Reset the flag
     },
 
     _getCurrentAppState: function () {
@@ -109,18 +117,17 @@ sap.ui.define([
     },
 
     // Modular functions for specific tasks
-    _applyFilters: function (filters) {
+    _applyFilters: function (filters, isRestoring) {
       const { shippingRequestId, status, customerId, plantOrigin, createdBy } = filters;
       this.getView().byId("idShippingRequestItemFilter").setValue(shippingRequestId || "");
       this.getView().byId("statusFilter").setSelectedKeys(status || []);
       this.getView().byId("customerIdFilter").setValue(customerId || "");
       this.getView().byId("plantOriginFilter").setValue(plantOrigin || "");
       this.getView().byId("createdByFilter").setValue(createdBy || "");
-      this.filterTable(filters);
+      this.filterTable(filters, isRestoring);
     },
 
-    filterTable: function (filters) {
-      debugger;
+    filterTable: function (filters, isRestoring) {
       const oTable = this.getView().byId("shippingsTable");
       const oBinding = oTable.getBinding("items");
 
@@ -164,17 +171,38 @@ sap.ui.define([
       oBinding.filter(aFilters);
 
       // Save the application state after applying filters
-      this._saveAppState();
+      if (!isRestoring) {
+        this._saveAppState();
+      }
     },
 
     _restoreSelectedItem: function (selectedItemId) {
       const oTable = this.getView().byId("shippingsTable");
       const aItems = oTable.getItems();
-      aItems.forEach(item => {
-        const context = item.getBindingContext().getObject();
-        if (context.ShippingRequestId === selectedItemId) {
+
+      aItems.forEach((item) => {
+        const context = item.getBindingContext();
+        const itemData = context.getObject();
+
+        if (itemData.ShippingRequestId === selectedItemId) {
+          // Select the item and scroll to it
           oTable.setSelectedItem(item);
           oTable.scrollToIndex(oTable.indexOfItem(item));
+
+          // Clear existing views to avoid duplicates
+          const oFlexibleColumnLayout = this.byId("layout");
+          if (oFlexibleColumnLayout) {
+            oFlexibleColumnLayout.removeAllMidColumnPages(); // Clear midColumnPages
+            oFlexibleColumnLayout.removeAllEndColumnPages(); // Clear endColumnPages
+          }
+
+          // Set layout and navigate to Details
+          this._getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+          this._getRouter().navTo("Details", {
+            SHIPPING_REQUEST_ID: selectedItemId
+          });
+
+          // Do not save the appState during restoration
         }
       });
     },
@@ -215,11 +243,11 @@ sap.ui.define([
     },
 
     // Utility functions
-    getModel: function (sName) {
+    _getModel: function (sName) {
       return this.getOwnerComponent().getModel(sName) || this.getView().getModel(sName);
     },
 
-    getRouter: function () {
+    _getRouter: function () {
       return this.getOwnerComponent().getRouter();
     },
 
@@ -229,13 +257,29 @@ sap.ui.define([
     },
 
     onSelectedItem: function (oEvent) {
-      debugger;
       const oSelectedItem = oEvent.getParameter("listItem");
+      if (!oSelectedItem) {
+        console.error("No list item selected.");
+        return;
+      }
       const oContext = oSelectedItem.getBindingContext();
-      const selectedItemId = oContext.getProperty("ShippingRequestId");
-      this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
-      this.getRouter().navTo("Details", { SHIPPING_REQUEST_ID: selectedItemId });
-      this._saveAppState();
+      const selectedItemId = oContext ? oContext.getProperty("ShippingRequestId") : null;
+
+      if (!selectedItemId) {
+        return;
+      }
+
+      // Update the app view layout and navigate
+      this._getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+
+      this._getRouter().navTo("Details", {
+        SHIPPING_REQUEST_ID: selectedItemId
+      }, { replace: true });
+
+      this._saveAppState(); // Save the updated app state
+      debugger;
+      let sAppState = this.getAppStateFromUrl();
+      this._saveToAppStateModel(sAppState);
     },
 
     onClearFilters: function () {
@@ -261,7 +305,7 @@ sap.ui.define([
         });
 
         // Optionally trigger the search to update the results
-        this.filterTable({});
+        this.filterTable({}, false);
         this._saveAppState();
       } else {
         console.error("FilterBar not found.");
@@ -286,8 +330,8 @@ sap.ui.define([
       PrintForms.onPrintPress(this.getView(), oContext);
     },
 
-    _loadDefaultView: function () {
-      this.filterTable({});
-    }
+    // _loadDefaultView: function () {
+    //   this.filterTable({});
+    // },
   });
 });
