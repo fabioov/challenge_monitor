@@ -197,8 +197,8 @@ sap.ui.define([
           }
 
           // Set layout and navigate to Details
-          this._getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
-          this._getRouter().navTo("Details", {
+          this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+          this.getRouter().navTo("Details", {
             SHIPPING_REQUEST_ID: selectedItemId
           });
 
@@ -242,15 +242,6 @@ sap.ui.define([
       }));
     },
 
-    // Utility functions
-    _getModel: function (sName) {
-      return this.getOwnerComponent().getModel(sName) || this.getView().getModel(sName);
-    },
-
-    _getRouter: function () {
-      return this.getOwnerComponent().getRouter();
-    },
-
     // Event Handlers
     onFilterBarSearch: function () {
       this._saveAppState();
@@ -270,9 +261,9 @@ sap.ui.define([
       }
 
       // Update the app view layout and navigate
-      this._getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+      this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
 
-      this._getRouter().navTo("Details", {
+      this.getRouter().navTo("Details", {
         SHIPPING_REQUEST_ID: selectedItemId
       }, { replace: true });
 

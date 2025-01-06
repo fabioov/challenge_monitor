@@ -55,5 +55,13 @@ sap.ui.define([
             // Return null or a default value if 'appState=' is not found
             return null;
         },
+
+        getModel: function (sName) {
+            return this.getOwnerComponent().getModel(sName) || this.getView().getModel(sName);
+          },
+      
+          getRouter: function () {
+            return this.getOwnerComponent().getRouter();
+          },
     });
 });

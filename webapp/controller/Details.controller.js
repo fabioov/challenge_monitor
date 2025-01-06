@@ -155,19 +155,11 @@ sap.ui.define([
 
             let currentAppState = this.getAppStateFromUrl();
             // Set layout to OneColumn
-            this._getModel("appView").setProperty("/layout", "OneColumn");
+            this.getModel("appView").setProperty("/layout", "OneColumn");
             // this._getRouter().navTo("List", {}, {});
 
             // Update the hash
             this._updateUrl(currentAppState);
-        },
-
-        _getModel: function (sName) {
-            return this.getView().getModel(sName);
-        },
-
-        _getRouter: function () {
-            return this.getOwnerComponent().getRouter();
         },
 
         onSelectedItem: function (oEvent) {
@@ -179,7 +171,7 @@ sap.ui.define([
             var sDeliveryNr = oContext.getProperty("DELIVERY_NR");
             var sDeliveryItemNr = oContext.getProperty("DELIVERY_ITEM_NR");
             var sMaterialNr = oContext.getProperty("MATERIAL_NR");
-            var oHeaderModel = this._getModel("Header");
+            var oHeaderModel = this.getModel("Header");
             var sStatus = oHeaderModel.getData().Status;
 
             var keys = {
@@ -193,8 +185,8 @@ sap.ui.define([
             // Store the state (but not restore)
             // this._storeAppState(keys);
 
-            this._getModel("appView").setProperty("/layout", "ThreeColumnsMidExpanded");
-            this._getRouter().navTo(
+            this.getModel("appView").setProperty("/layout", "ThreeColumnsMidExpanded");
+            this.getRouter().navTo(
                 "PickTaskDetail",
                 {
                     SHIPPING_REQUEST_ID: sShippingRequestId,

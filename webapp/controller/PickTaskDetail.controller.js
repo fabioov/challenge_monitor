@@ -1,5 +1,5 @@
 sap.ui.define([
-	"sap/ui/core/mvc/Controller",
+	"./BaseController",
 	"br/com/challenge/monitor/challengemonitor/utils/formatter",
 	"sap/ui/model/json/JSONModel",
 	"sap/ui/model/Filter",
@@ -9,7 +9,7 @@ sap.ui.define([
 	"sap/m/BusyDialog",
 	"sap/m/MessageBox"
 ], function (
-	Controller,
+	BaseController,
 	formatter,
 	JSONModel,
 	Filter,
@@ -21,7 +21,7 @@ sap.ui.define([
 ) {
 	"use strict";
 
-	return Controller.extend("br.com.challenge.monitor.challengemonitor.controller.PickTaskDetail",
+	return BaseController.extend("br.com.challenge.monitor.challengemonitor.controller.PickTaskDetail",
 		{
 			Formatter: formatter,
 
@@ -83,7 +83,7 @@ sap.ui.define([
 
 				// Get the List view by its ID
 				let oListView = oComponent.byId("details");
-				let oModel = this._getModel("PickTaskDetail");
+				let oModel = this.getModel("PickTaskDetail");
 				let oData = oModel.getData();
 				let sShippingRequestId = oData.SHIPPING_REQUEST_ID;
 
@@ -96,21 +96,13 @@ sap.ui.define([
 						oTable.removeSelections();
 					}
 				}
-				this._getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
-				this._getRouter().navTo("Details",
+				this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+				this.getRouter().navTo("Details",
 					{
 						SHIPPING_REQUEST_ID: sShippingRequestId
 					});
 				jQuery.sap.storage(jQuery.sap.storage.Type.session).put("detailsState", {});
 
-			},
-
-			_getModel: function (sName) {
-				return this.getView().getModel(sName);
-			},
-
-			_getRouter: function () {
-				return this.getOwnerComponent().getRouter();
 			},
 
 			openItemHistory: function (oEvent) {
