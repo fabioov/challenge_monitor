@@ -35,14 +35,27 @@ sap.ui.define([
 
         },
 
-        _saveState: function (currentAppState) {
+        _saveState: function (currentAppState, keys) {
             debugger;
             let appStateDecompressed = this.decompressAndDecode(currentAppState);
 
             // Construct the new URL by keeping the base part and appending the updated app state
             const baseUrl = this._baseUrl();
 
-            const newUrl = `${baseUrl}&/details/ShippingRequestId=${appStateDecompressed.selectedItem}/?appState=${currentAppState}`;
+            let newUrl;
+
+            if (keys && Object.keys(keys).length > 0) {
+                appStateDecompressed.selectedDetailkeys = keys;
+                const appStateCompressed = this.compressAndEncode(appStateDecompressed);
+                this._appStateModel.setProperty("/appState", appStateCompressed);
+                newUrl = `${baseUrl}&/details/ShippingRequestId=${appStateDecompressed.selectedItem}/picktaskdetail/${keys.DELIVERY_NR}/${keys.DELIVERY_ITEM_NR}/${keys.MATERIAL_NR}/${keys.STATUS}/?appState=${appStateCompressed}`;
+
+            } else if (appStateDecompressed.keys) {
+                newUrl = `${baseUrl}&/details/ShippingRequestId=${appStateDecompressed.keys.SHIPPING_REQUEST_ID}/${appStateDecompressed.keys.DELIVERY_NR}/${appStateDecompressed.keys.DELIVERY_ITEM_NR}/${appStateDecompressed.keys.MATERIAL_NR}/${appStateDecompressed.keys.STATUS}/?appState=${appStateCompressed}`;
+            } else {
+
+                newUrl = `${baseUrl}&/details/ShippingRequestId=${appStateDecompressed.selectedItem}/?appState=${currentAppState}`;
+            }
 
             // Replace the current URL in the browser without adding to the history stack
             window.history.replaceState({ path: newUrl }, "", newUrl);
@@ -50,21 +63,21 @@ sap.ui.define([
 
         _baseUrl: function () {
             const currentUrl = window.location.href;
-        
+
             // Split by hash "#" to isolate the part of the URL after it
             const [urlBeforeHash, hashFragment] = currentUrl.split("#");
-        
+
             if (!hashFragment) return urlBeforeHash; // Return the full URL if no hash fragment exists
-        
+
             // Extract the base part before "&/details/"
             const baseHash = hashFragment.split("&/details/")[0];
-        
+
             // Ensure the base ends with "-display"
             const [cleanBaseHash] = baseHash.includes("?") ? baseHash.split("?") : [baseHash];
-        
+
             // Construct the final base URL
             const finalBaseUrl = `${urlBeforeHash}#${cleanBaseHash}`;
-        
+
             return finalBaseUrl;
         },
 
@@ -80,7 +93,7 @@ sap.ui.define([
             let appStateFromUrl = this.getAppStateFromUrl();
             var shippingRequestId = "0000000" + oEvent.getParameter("arguments").SHIPPING_REQUEST_ID;
             let appStateToSave = modelAppState ? modelAppState : appStateFromUrl;
-            this._saveState(appStateToSave);
+            this._saveState(appStateToSave, {});
 
             // Get the view and the OData model
             var oView = this.getView();
@@ -118,7 +131,7 @@ sap.ui.define([
 
         },
 
-        _updateUrl: function (currentAppState) {
+        _updateUrlOnCloseView: function (currentAppState) {
             debugger;
             let appStateDecompressed = this.decompressAndDecode(currentAppState);
             appStateDecompressed.selectedItem = null;
@@ -159,7 +172,7 @@ sap.ui.define([
             // this._getRouter().navTo("List", {}, {});
 
             // Update the hash
-            this._updateUrl(currentAppState);
+            this._updateUrlOnCloseView(currentAppState);
         },
 
         onSelectedItem: function (oEvent) {
@@ -183,7 +196,7 @@ sap.ui.define([
             };
 
             // Store the state (but not restore)
-            // this._storeAppState(keys);
+            const sAppState = this.getAppStateFromUrl();
 
             this.getModel("appView").setProperty("/layout", "ThreeColumnsMidExpanded");
             this.getRouter().navTo(
@@ -197,7 +210,18 @@ sap.ui.define([
                 },
                 { replace: bReplace }
             );
+
+            this._saveState(sAppState, keys);
+            const newAppState = this.getAppStateFromUrl();
+            this._saveAppStateModel(newAppState)
         },
+
+        _saveAppStateModel: function (newAppState) {
+            let appStateModel = this.getOwnerComponent().getModel("appStateModel");
+            appStateModel.setProperty("/appState", newAppState);
+
+        },
+
 
         onChangeStatus: function () {
             var oModel = this.getView().getModel();

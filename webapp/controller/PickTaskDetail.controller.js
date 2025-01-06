@@ -35,6 +35,8 @@ sap.ui.define([
 			},
 
 			_onBindingDetails: function (oEvent) {
+				let oAppState = this.getOwnerComponent().getModel("appStateModel");
+				console.log("AppState from Pick:", oAppState);
 				let oBundle = this.getView().getModel("i18n").getResourceBundle();
 				let deliveryNr = oEvent.getParameter("arguments").DELIVERY_NR;
 				let deliveryItemNr = oEvent.getParameter("arguments").DELIVERY_ITEM_NR;
