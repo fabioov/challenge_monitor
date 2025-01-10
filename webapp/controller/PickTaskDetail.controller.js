@@ -28,20 +28,72 @@ sap.ui.define([
 			onInit: function () {
 
 
-				this.getOwnerComponent().getRouter().getRoute("PickTaskDetail").attachPatternMatched(this._onBindingDetails, this);
+				this.getOwnerComponent().getRouter().getRoute("PickTaskDetail").attachPatternMatched(this._onPickTaskDetailsMatched, this);
 
 				let popMsgModel = sap.ui.getCore().getModel("popoverModel");
 
 			},
 
-			_onBindingDetails: function (oEvent) {
-				let oAppState = this.getOwnerComponent().getModel("appStateModel");
-				console.log("AppState from Pick:", oAppState);
+			_saveState: function (appState, keys) {
+				let appStateCompressed = this.compressAndEncode(appState);
+				let baseUrl = this._baseUrl();
+
+				const newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}/picktaskdetail/${appState.selectedDetailKeys.DELIVERY_NR}/${appState.selectedDetailKeys.DELIVERY_ITEM_NR}/${appState.selectedDetailKeys.MATERIAL_NR}/${appState.selectedDetailKeys.STATUS}/?appState=${appStateCompressed}`;
+
+				const currentUrl = window.location.href;
+				if (currentUrl !== newUrl) {
+					window.history.replaceState({ path: newUrl }, "", newUrl);
+				}
+
+				let oAppStateModel = this.getOwnerComponent().getModel("appStateModel");
+				oAppStateModel.setProperty("/appState", appStateCompressed);
+			},
+
+			_baseUrl: function () {
+				const currentUrl = window.location.href;
+
+				// Split by hash "#" to isolate the part of the URL after it
+				const [urlBeforeHash, hashFragment] = currentUrl.split("#");
+
+				if (!hashFragment) return urlBeforeHash; // Return the full URL if no hash fragment exists
+
+				// Extract the base part before "&/details/"
+				const baseHash = hashFragment.split("&/details/")[0];
+
+				// Ensure the base ends with "-display"
+				const [cleanBaseHash] = baseHash.includes("?") ? baseHash.split("?") : [baseHash];
+
+				// Construct the final base URL
+				const finalBaseUrl = `${urlBeforeHash}#${cleanBaseHash}`;
+
+				return finalBaseUrl;
+			},
+
+
+			_getCurrentState: function () {
+				const oAppState = this.getOwnerComponent().getModel("appStateModel");
+				const currentAppState = oAppState.getData();
+				return this.decompressAndDecode(currentAppState.appState)
+			},
+
+			_onPickTaskDetailsMatched: function (oEvent) {
+				let appState = this._getCurrentState();
 				let oBundle = this.getView().getModel("i18n").getResourceBundle();
+				let shippingRequestId = oEvent.getParameter("arguments").SHIPPING_REQUEST_ID;
 				let deliveryNr = oEvent.getParameter("arguments").DELIVERY_NR;
 				let deliveryItemNr = oEvent.getParameter("arguments").DELIVERY_ITEM_NR;
 				let materialNr = oEvent.getParameter("arguments").MATERIAL_NR;
 				let status = oEvent.getParameter("arguments").STATUS;
+
+				let keys = {
+					SHIPPING_REQUEST_ID: shippingRequestId,
+					DELIVERY_NR: deliveryNr,
+					DELIVERY_ITEM_NR: deliveryItemNr,
+					MATERIAL_NR: materialNr,
+					STATUS: status
+				};
+
+				this._saveState(appState, keys);
 
 				let aFilters = [];
 
@@ -79,6 +131,37 @@ sap.ui.define([
 				});
 
 			},
+
+			_saveStateOnCloseView: function (appState) {
+				const appStateDecompressed = this._prepareDecompressedState(appState);
+				const appStateCompressed = this.compressAndEncode(appStateDecompressed);
+
+				const newUrl = this._generateNewUrl(appStateDecompressed.selectedItem, appStateCompressed);
+				this._updateHistoryAndModel(newUrl, appStateCompressed);
+			},
+
+			_prepareDecompressedState: function (appState) {
+				const appStateDecompressed = this.decompressAndDecode(appState);
+				appStateDecompressed.selectedDetailKeys = {};
+				appStateDecompressed.viewsNr = 2;
+				return appStateDecompressed;
+			},
+
+			_generateNewUrl: function (shippingRequestId, appStateCompressed) {
+				const baseUrl = this._baseUrl();
+				return `${baseUrl}&/details/ShippingRequestId=${shippingRequestId}/?appState=${appStateCompressed}`;
+			},
+
+			_updateHistoryAndModel: function (newUrl, appStateCompressed) {
+				// Update browser history
+				window.history.replaceState({ path: newUrl }, "", newUrl);
+
+				// Update appStateModel
+				const appStateModel = this.getOwnerComponent().getModel("appStateModel");
+				appStateModel.setProperty("/appState", appStateCompressed);
+				appStateModel.setProperty("/views", 2);
+			},
+
 			onClosePickTaskDetailView: function () {
 				// Get the owner component
 				let oComponent = this.getOwnerComponent();
@@ -98,12 +181,15 @@ sap.ui.define([
 						oTable.removeSelections();
 					}
 				}
+				const currentAppState = this.getAppStateFromUrl();
+
 				this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
 				this.getRouter().navTo("Details",
 					{
 						SHIPPING_REQUEST_ID: sShippingRequestId
 					});
-				jQuery.sap.storage(jQuery.sap.storage.Type.session).put("detailsState", {});
+
+				this._saveStateOnCloseView(currentAppState);
 
 			},
 

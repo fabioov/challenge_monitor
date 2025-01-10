@@ -35,11 +35,16 @@ sap.ui.define([
       if (this._appStateInitialized) return;
       this._appStateInitialized = true;
 
+      let appStateModel = this.getOwnerComponent().getModel("appStateModel");
+      let appStateData = appStateModel.getProperty("/appState");
       this._appStateEncoded = this.getAppStateFromUrl();
-      if (this._appStateEncoded) {
-        const appState = this.decompressAndDecode(this._appStateEncoded);
+
+      let appStatePicked = this._appStateEncoded || appStateData
+
+      if (appStatePicked) {
+        const appState = this.decompressAndDecode(appStatePicked);
         this._restoreAppState(appState);
-        this._saveToAppStateModel(this._appStateEncoded);
+        this._saveToAppStateModel(appStatePicked);
       }
     },
 
@@ -48,7 +53,7 @@ sap.ui.define([
       appStateModel.setProperty("/appState", appState);
     },
 
-    _saveAppState: function () {
+    _saveAppState: function (viewsNr) {
       const appState = this._getCurrentAppState();
       const currentUrl = window.location.href;
       // Extract the base URL considering 'display'
@@ -72,19 +77,92 @@ sap.ui.define([
       } else {
         baseUrl = currentUrl;
       }
+      let appStateModel = this.getOwnerComponent().getModel("appStateModel");
+      let appStateModelState = appStateModel ? appStateModel.getProperty("/appState") : null;
+      // let isClicked = appStateModel ? appStateModel.getProperty("/clickedList") : null;
 
-      // Encode the appState object
-      const appStateEncoded = this.compressAndEncode(appState);
+      let appStateModelStateDecoded = appStateModelState ? this.decompressAndDecode(appStateModelState) : null;
 
-      // Construct the new URL based on whether appState.selectedItem exists
       let newUrl;
-      if (appState.selectedItem) {
+      let appStateEncoded;
+
+      appState.viewsNr = viewsNr;
+      // Check if appStateModelStateDecoded exists before accessing properties
+      if (this._isListClicked) {
+        // Handle the case where isClicked takes precedence
+        this._isListClicked = false; // Reset the flag
+        appStateEncoded = this.compressAndEncode(appState);
+        // newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}?appState=${appStateEncoded}`;
+        // } else if (appStateModelStateDecoded && appStateModelStateDecoded.selectedDetailKeys && Object.keys(appStateModelStateDecoded.selectedDetailKeys).length > 0) {
+        //   // If selectedDetailKeys exist and have data
+        //   appState.selectedDetailKeys = appStateModelStateDecoded.selectedDetailKeys;
+        //   // Encode the appState object
+        //   appStateEncoded = this.compressAndEncode(appState);
+        //   newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}/picktaskdetail/${appState.selectedDetailKeys.DELIVERY_NR}/${appState.selectedDetailKeys.DELIVERY_ITEM_NR}/${appState.selectedDetailKeys.MATERIAL_NR}/${appState.selectedDetailKeys.STATUS}/?appState=${appStateEncoded}`;
+      } else if (appState && appState.selectedItem) {
+        // Encode the appState object
+        appStateEncoded = this.compressAndEncode(appState);
+        // If only selectedItem exists
         newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}/?appState=${appStateEncoded}`;
-      } else {
+      } else if (appState) {
+        // Encode the appState object
+        appStateEncoded = this.compressAndEncode(appState);
+        // Default case, no selectedDetailKeys or selectedItem
         newUrl = `${baseUrl}?appState=${appStateEncoded}`;
+      } else {
+        newUrl = baseUrl; // No appState, so keep the base URL
       }
 
+
+      appStateModel.setProperty("/appState", appStateEncoded);
+
       // Update the browser's URL without reloading the page
+      window.history.replaceState({ path: newUrl }, "", newUrl);
+    },
+
+    _updateAppState: function () {
+      const currentHash = window.location.hash;
+
+      // Check if "appState" exists in the query parameters
+      if (!this._isAppStateInUrl(currentHash)) {
+        this._saveAppState(1);
+        return;
+      }
+
+      const baseUrl = this._getBaseUrl();
+      const currentAppState = this.getAppStateFromUrl();
+      const currentAppStateDecoded = this.decompressAndDecode(currentAppState);
+
+      // Update the app state with filters and visibility
+      this._updateAppStateFilters(currentAppStateDecoded);
+
+      const appStateEncoded = this.compressAndEncode(currentAppStateDecoded);
+      const appStateModel = this._getAppStateModel();
+
+      this._updateUrlAndModel(baseUrl, appStateEncoded, appStateModel);
+    },
+
+    _isAppStateInUrl: function (currentHash) {
+      return currentHash.includes("appState");
+    },
+
+    _getBaseUrl: function () {
+      return window.location.href.split("?appState=")[0];
+    },
+
+    _updateAppStateFilters: function (currentAppStateDecoded) {
+      const appState = this._getCurrentAppState();
+      currentAppStateDecoded.filters = appState.filters;
+      currentAppStateDecoded.filterVisibility = appState.filterVisibility;
+    },
+
+    _getAppStateModel: function () {
+      return this.getOwnerComponent().getModel("appStateModel");
+    },
+
+    _updateUrlAndModel: function (baseUrl, appStateEncoded, appStateModel) {
+      const newUrl = `${baseUrl}?appState=${appStateEncoded}`;
+      appStateModel.setProperty("/appState", appStateEncoded);
       window.history.replaceState({ path: newUrl }, "", newUrl);
     },
 
@@ -95,7 +173,7 @@ sap.ui.define([
         this._applyFilters(appState.filters, true); // Pass isRestoring = true
       }
       if (appState.selectedItem) {
-        this._restoreSelectedItem(appState.selectedItem);
+        this._restoreSelectedItem(appState);
       }
       if (appState.filterVisibility) {
         this._restoreFilterVisibility(appState.filterVisibility);
@@ -172,37 +250,25 @@ sap.ui.define([
 
       // Save the application state after applying filters
       if (!isRestoring) {
-        this._saveAppState();
+        this._updateAppState();
       }
     },
 
-    _restoreSelectedItem: function (selectedItemId) {
+    _restoreSelectedItem: function (appState) {
       const oTable = this.getView().byId("shippingsTable");
       const aItems = oTable.getItems();
 
       aItems.forEach((item) => {
         const context = item.getBindingContext();
         const itemData = context.getObject();
-
-        if (itemData.ShippingRequestId === selectedItemId) {
+        if (itemData.ShippingRequestId === appState.selectedItem) {
           // Select the item and scroll to it
           oTable.setSelectedItem(item);
           oTable.scrollToIndex(oTable.indexOfItem(item));
 
-          // Clear existing views to avoid duplicates
-          const oFlexibleColumnLayout = this.byId("layout");
-          if (oFlexibleColumnLayout) {
-            oFlexibleColumnLayout.removeAllMidColumnPages(); // Clear midColumnPages
-            oFlexibleColumnLayout.removeAllEndColumnPages(); // Clear endColumnPages
+          if (appState.viewsNr === 2) {
+            this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
           }
-
-          // Set layout and navigate to Details
-          this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
-          this.getRouter().navTo("Details", {
-            SHIPPING_REQUEST_ID: selectedItemId
-          });
-
-          // Do not save the appState during restoration
         }
       });
     },
@@ -244,7 +310,7 @@ sap.ui.define([
 
     // Event Handlers
     onFilterBarSearch: function () {
-      this._saveAppState();
+      this._updateAppState();
     },
 
     onSelectedItem: function (oEvent) {
@@ -267,10 +333,13 @@ sap.ui.define([
         SHIPPING_REQUEST_ID: selectedItemId
       }, { replace: true });
 
-      this._saveAppState(); // Save the updated app state
-      debugger;
-      let sAppState = this.getAppStateFromUrl();
-      this._saveToAppStateModel(sAppState);
+      this._isListClicked = true;
+
+      this._saveAppState(2);
+
+      let appStateModel = this.getOwnerComponent().getModel("appStateModel");
+      appStateModel.setProperty("/clicked", true);
+      appStateModel.setProperty("/viewsNr", 2);
     },
 
     onClearFilters: function () {
@@ -297,7 +366,8 @@ sap.ui.define([
 
         // Optionally trigger the search to update the results
         this.filterTable({}, false);
-        this._saveAppState();
+        // this._saveAppState();
+        this._updateAppState();
       } else {
         console.error("FilterBar not found.");
       }

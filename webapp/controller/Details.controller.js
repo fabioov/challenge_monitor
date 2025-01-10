@@ -29,36 +29,38 @@ sap.ui.define([
         onInit: function () {
             this._appStateModel = this.getOwnerComponent().getModel("appStateModel");
             // Attach route pattern matched event
-            debugger;
+
             this.getOwnerComponent().getRouter().getRoute("Details")
                 .attachPatternMatched(this._onBindingDetails, this);
 
         },
 
-        _saveState: function (currentAppState, keys) {
-            debugger;
+        _saveState: function (currentAppState, keys, viewsNr) {
             let appStateDecompressed = this.decompressAndDecode(currentAppState);
 
             // Construct the new URL by keeping the base part and appending the updated app state
             const baseUrl = this._baseUrl();
 
+            appStateDecompressed.viewsNr = viewsNr;
+
             let newUrl;
 
             if (keys && Object.keys(keys).length > 0) {
-                appStateDecompressed.selectedDetailkeys = keys;
+                appStateDecompressed.selectedDetailKeys = keys;
                 const appStateCompressed = this.compressAndEncode(appStateDecompressed);
                 this._appStateModel.setProperty("/appState", appStateCompressed);
-                newUrl = `${baseUrl}&/details/ShippingRequestId=${appStateDecompressed.selectedItem}/picktaskdetail/${keys.DELIVERY_NR}/${keys.DELIVERY_ITEM_NR}/${keys.MATERIAL_NR}/${keys.STATUS}/?appState=${appStateCompressed}`;
-
-            } else if (appStateDecompressed.keys) {
-                newUrl = `${baseUrl}&/details/ShippingRequestId=${appStateDecompressed.keys.SHIPPING_REQUEST_ID}/${appStateDecompressed.keys.DELIVERY_NR}/${appStateDecompressed.keys.DELIVERY_ITEM_NR}/${appStateDecompressed.keys.MATERIAL_NR}/${appStateDecompressed.keys.STATUS}/?appState=${appStateCompressed}`;
             } else {
 
                 newUrl = `${baseUrl}&/details/ShippingRequestId=${appStateDecompressed.selectedItem}/?appState=${currentAppState}`;
+                this._appStateModel.setProperty("/appState", currentAppState);
+
+                // Replace the current URL in the browser without adding to the history stack
+                const currentUrl = window.location.href;
+                if (currentUrl !== newUrl) {
+                    window.history.replaceState({ path: newUrl }, "", newUrl);
+                }
             }
 
-            // Replace the current URL in the browser without adding to the history stack
-            window.history.replaceState({ path: newUrl }, "", newUrl);
         },
 
         _baseUrl: function () {
@@ -85,58 +87,140 @@ sap.ui.define([
             MessagePopoverHook.onMessagesPopoverOpen(oEvent);
         },
 
-        _onBindingDetails: function (oEvent) {
-            // Get the SHIPPING_REQUEST_ID from the route arguments
-            debugger;
-            let appStateModel = this.getOwnerComponent().getModel("appStateModel");
-            let modelAppState = appStateModel.oData.appState;
-            let appStateFromUrl = this.getAppStateFromUrl();
-            var shippingRequestId = "0000000" + oEvent.getParameter("arguments").SHIPPING_REQUEST_ID;
-            let appStateToSave = modelAppState ? modelAppState : appStateFromUrl;
-            this._saveState(appStateToSave, {});
+        _restoreState: function (url) {
+            let appState = this.decompressAndDecode(url);
+            if (appState.selectedDetailKeys && Object.keys(appState.selectedDetailKeys).length > 0) {
+                this._restoreSelectedItem(appState);
+            }
+        },
 
-            // Get the view and the OData model
-            var oView = this.getView();
-            var oModel = oView.getModel();
+        _restoreSelectedItem: function (appState) {
+            if (!appState) return;
+            const oTable = this.getView().byId("itemsTable");
+            const aItems = oTable.getItems();
+            if (!aItems || aItems.length === 0) return;
+            aItems.forEach((item) => {
+                const context = item.getBindingContext("Details");
+                const itemData = context.getObject();
 
-            // Define the filter for the SHIPPING_REQUEST_ID
-            var aFilters = [new Filter("SHIPPING_REQUEST_ID", FilterOperator.EQ, shippingRequestId)];
+                if (itemData.DELIVERY_NR === appState.selectedDetailKeys.DELIVERY_NR &&
+                    itemData.DELIVERY_ITEM_NR === appState.selectedDetailKeys.DELIVERY_ITEM_NR &&
+                    itemData.MATERIAL_NR === appState.selectedDetailKeys.MATERIAL_NR) {
+                    oTable.setSelectedItem(item);
+                    oTable.scrollToIndex(oTable.indexOfItem(item));
 
-            // Read data from ZRFSFBPCDS0002 (Items data)
-            var sElement = "/ZRFSFBPCDS0002";
-            oModel.read(sElement, {
-                filters: aFilters,
-                success: function (oData) {
-                    if (oData.results.length > 0) {
-                        var oItemsModel = new JSONModel(oData);
-                        oView.setModel(oItemsModel, "Details");
+                    // Clear existing views to avoid duplicates
+                    const oFlexibleColumnLayout = this.byId("layout");
+                    if (oFlexibleColumnLayout) {
+                        oFlexibleColumnLayout.removeAllMidColumnPages(); // Clear midColumnPages
+                        oFlexibleColumnLayout.removeAllEndColumnPages(); // Clear endColumnPages
                     }
-                },
-                error: function (oError) {
-                    // Handle error appropriately
-                }
-            });
+                    this.getModel("appView").setProperty("/layout", "ThreeColumnsMidExpanded");
+                    this.getRouter().navTo(
+                        "PickTaskDetail",
+                        {
+                            SHIPPING_REQUEST_ID: appState.selectedDetailKeys.SHIPPING_REQUEST_ID,
+                            DELIVERY_NR: appState.selectedDetailKeys.DELIVERY_NR,
+                            DELIVERY_ITEM_NR: itemData.DELIVERY_ITEM_NR,
+                            MATERIAL_NR: appState.selectedDetailKeys.MATERIAL_NR,
+                            STATUS: appState.selectedDetailKeys.STATUS
+                        },
+                        { replace: true }
+                    );
 
-            // Read data from ZRFSFBPCDS0001 (Header data)
-            var sPath = "/ZRFSFBPCDS0001('" + shippingRequestId + "')";
-            oModel.read(sPath, {
-                success: function (oData) {
-                    var oJSONModel = new JSONModel(oData);
-                    oView.setModel(oJSONModel, "Header");
-                },
-                error: function (oError) {
-                    // Handle error appropriately
+                    let appStateCompressed = this.compressAndEncode(appState)
+                    let appStateModel = this.getOwnerComponent().getModel("appStateModel");
+                    appStateModel.setProperty("/appState", appStateCompressed);
+                    appStateModel.setProperty("/views", 3);
                 }
             });
 
         },
 
+        _onBindingDetails: function (oEvent) {
+            //TODO: Verify that we only need to retrieve data from the appStateModel and not from the URL
+            let appStateModel = this.getOwnerComponent().getModel("appStateModel");
+            let modelAppState = appStateModel.oData.appState;
+            let isClicked = appStateModel.oData.clicked;
+            let modelAppStateDecompressed = modelAppState
+                ? this.decompressAndDecode(modelAppState)
+                : {};
+
+            let appStateFromUrl = this.getAppStateFromUrl();
+            let appStateFromUrlDecompressed;
+            if (appStateFromUrl) {
+                appStateFromUrlDecompressed = this.decompressAndDecode(appStateFromUrl);
+            }
+
+            let shippingRequestId = "0000000" + oEvent.getParameter("arguments").SHIPPING_REQUEST_ID;
+            let appStateToSave = modelAppState ? modelAppState : appStateFromUrl;
+
+            // Get the view and the OData model
+            let oView = this.getView();
+            let oModel = oView.getModel();
+
+            // Define the filter for the SHIPPING_REQUEST_ID
+            let aFilters = [new Filter("SHIPPING_REQUEST_ID", FilterOperator.EQ, shippingRequestId)];
+
+            //TODO: Implement expand so we call backend only once for header and details
+            // Create promises for asynchronous operations
+            let bindDetailsPromise = new Promise((resolve, reject) => {
+                let sElement = "/ZRFSFBPCDS0002"; // Items data
+                oModel.read(sElement, {
+                    filters: aFilters,
+                    success: function (oData) {
+                        if (oData.results.length > 0) {
+                            let oItemsModel = new JSONModel(oData);
+                            oView.setModel(oItemsModel, "Details");
+                        }
+                        resolve(); // Resolve the promise when details binding is complete
+                    },
+                    error: function (oError) {
+                        reject(oError); // Reject the promise in case of an error
+                    }
+                });
+            });
+
+            let bindHeaderPromise = new Promise((resolve, reject) => {
+                let sPath = "/ZRFSFBPCDS0001('" + shippingRequestId + "')"; // Header data
+                oModel.read(sPath, {
+                    success: function (oData) {
+                        let oJSONModel = new JSONModel(oData);
+                        oView.setModel(oJSONModel, "Header");
+                        resolve(); // Resolve the promise when header binding is complete
+                    },
+                    error: function (oError) {
+                        reject(oError); // Reject the promise in case of an error
+                    }
+                });
+            });
+
+            // Wait for the "Details" binding to complete before restoring the state
+            bindDetailsPromise
+                .then(() => {
+                    if (isClicked === false || isClicked === undefined) {
+                        this._restoreState(appStateFromUrl);
+                    } else {
+                        appStateModel.setProperty("/clicked", false);
+                        this._saveState(modelAppState, modelAppStateDecompressed.selectedDetailKeys, modelAppState.viewsNr)
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error in binding Details:", error);
+                });
+
+            // Handle header binding errors independently if needed
+            bindHeaderPromise.catch((error) => {
+                console.error("Error in binding Header:", error);
+            });
+        },
+
         _updateUrlOnCloseView: function (currentAppState) {
-            debugger;
             let appStateDecompressed = this.decompressAndDecode(currentAppState);
             appStateDecompressed.selectedItem = null;
             let appStateCompressed = this.compressAndEncode(appStateDecompressed);
             this._appStateModel.setProperty("/appState", appStateCompressed);
+            this._appStateModel.setProperty("/views", 1);
 
             // Construct the new URL by keeping the base part and appending the updated app state
             const baseUrl = window.location.href.split("&/details")[0];
@@ -176,6 +260,12 @@ sap.ui.define([
         },
 
         onSelectedItem: function (oEvent) {
+            // if (this._isNavigating) {
+            //     console.log("Navigation already in progress. Skipping.");
+            //     return;
+            // }
+
+            // this._isNavigating = true; // Set the flag
             var bReplace = !Device.system.phone;
             var oSelectedItem = oEvent.getParameter("listItem");
             var oContext = oSelectedItem.getBindingContext("Details");
@@ -195,7 +285,6 @@ sap.ui.define([
                 STATUS: sStatus
             };
 
-            // Store the state (but not restore)
             const sAppState = this.getAppStateFromUrl();
 
             this.getModel("appView").setProperty("/layout", "ThreeColumnsMidExpanded");
@@ -211,17 +300,15 @@ sap.ui.define([
                 { replace: bReplace }
             );
 
-            this._saveState(sAppState, keys);
-            const newAppState = this.getAppStateFromUrl();
-            this._saveAppStateModel(newAppState)
-        },
+            this._saveState(sAppState, keys, 3);
 
-        _saveAppStateModel: function (newAppState) {
             let appStateModel = this.getOwnerComponent().getModel("appStateModel");
-            appStateModel.setProperty("/appState", newAppState);
+            appStateModel.setProperty("/clicked", true);
 
+            // setTimeout(() => {
+            //     this._isNavigating = false; // Reset the flag after navigation completes
+            // }, 500); // Adjust timeout based on navigation speed
         },
-
 
         onChangeStatus: function () {
             var oModel = this.getView().getModel();
