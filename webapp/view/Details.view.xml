@@ -270,8 +270,20 @@
 								id="itemsTable"
 								items="{Details>/results}"
 								class="sapFDynamicPageAlignContent"
+								updateFinished=".onUpdateFinished"
 							>
 								<m:columns>
+									<m:Column
+										id="Columnpre"
+										width="8em"
+									>
+										<m:header>
+											<m:Label
+												id="_IDGenLabel1222"
+												text="{i18n>dtPickingTaskId}"
+											/>
+										</m:header>
+									</m:Column>
 									<m:Column
 										id="Column"
 										width="8em"
@@ -312,6 +324,10 @@
 										type="Navigation"
 									>
 										<m:cells>
+											<m:Text
+												id="Text03265"
+												text="{Details>PICKING_TASK_ID}"
+											/>
 											<m:Text
 												id="Text0"
 												text="{Details>DELIVERY_NR}"

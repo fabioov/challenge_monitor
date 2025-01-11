@@ -18,7 +18,7 @@
                 headerExpanded="true"
                 headerPinnable="true"
                 preserveHeaderStateOnScroll="false"
-                showFooter="false"
+                showFooter="{detailModel>/showListFooter}"
                 titleAreaShrinkRatio="1:1.6:1.6"
                 toggleHeaderOnTitleClick="true"
                 class="sapUiNoContentPadding"
@@ -324,7 +324,7 @@
                     </ScrollContainer>
                 </semantic:content>
                 <semantic:footerCustomActions>
-                    <!-- <Button
+                    <Button
                         visible="{popoverModel>/visible}"
                         icon="sap-icon://message-popup"
                         id="idButtonMessage"
@@ -334,7 +334,7 @@
                         ariaHasPopup="Dialog"
                         class="messageButton"
                     />
-                    <Button
+                    <!-- <Button
                         id="_IDGenButton3"
                         type="Transparent"
                         icon="sap-icon://print"

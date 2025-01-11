@@ -27,6 +27,7 @@ sap.ui.define([
     onInit: function () {
 
       let popMsgModel = this.getOwnerComponent().getModel("popoverModel");
+
       this.getView().byId("shippingsTable").attachEventOnce("updateFinished", this._initializeAppState.bind(this));
 
     },
@@ -53,73 +54,132 @@ sap.ui.define([
       appStateModel.setProperty("/appState", appState);
     },
 
+    // Saving app state
+
+    // _saveAppState: function (viewsNr) {
+    //   const appState = this._getCurrentAppState();
+    //   const currentUrl = window.location.href;
+    //   // Extract the base URL considering 'display'
+    //   let baseUrl;
+    //   if (
+    //     currentUrl.includes("display") &&
+    //     (currentUrl.includes("?", currentUrl.indexOf("display")) || currentUrl.includes("&", currentUrl.indexOf("display")))
+    //   ) {
+    //     // Determine the position of the first `?` or `&` after "display"
+    //     const questionMarkIndex = currentUrl.indexOf("?", currentUrl.indexOf("display"));
+    //     const ampersandIndex = currentUrl.indexOf("&", currentUrl.indexOf("display"));
+
+    //     // Find the earliest occurrence of `?` or `&` after "display"
+    //     const cutoffIndex = questionMarkIndex !== -1 && ampersandIndex !== -1
+    //       ? Math.min(questionMarkIndex, ampersandIndex)
+    //       : questionMarkIndex !== -1
+    //         ? questionMarkIndex
+    //         : ampersandIndex;
+
+    //     baseUrl = cutoffIndex !== -1 ? currentUrl.substring(0, cutoffIndex) : currentUrl;
+    //   } else {
+    //     baseUrl = currentUrl;
+    //   }
+    //   let appStateModel = this.getOwnerComponent().getModel("appStateModel");
+
+    //   let newUrl;
+    //   let appStateEncoded;
+
+    //   appState.viewsNr = viewsNr;
+    //   if (this._isListClicked) {
+    //     // Handle the case where isClicked takes precedence
+    //     this._isListClicked = false; // Reset the flag
+    //     appStateEncoded = this.compressAndEncode(appState);
+    //   } else if (appState && appState.selectedItem) {
+    //     // Encode the appState object
+    //     appStateEncoded = this.compressAndEncode(appState);
+    //     // If only selectedItem exists
+    //     newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}/?appState=${appStateEncoded}`;
+    //   } else if (appState) {
+    //     // Encode the appState object
+    //     appStateEncoded = this.compressAndEncode(appState);
+    //     // Default case, no selectedDetailKeys or selectedItem
+    //     newUrl = `${baseUrl}?appState=${appStateEncoded}`;
+    //   } else {
+    //     newUrl = baseUrl; // No appState, so keep the base URL
+    //   }
+
+    //   appStateModel.setProperty("/appState", appStateEncoded);
+
+    //   // Update the browser's URL without reloading the page
+    //   if (newUrl) {
+    //     window.history.replaceState({ path: newUrl }, "", newUrl);
+    //   }
+    // },
+
     _saveAppState: function (viewsNr) {
       const appState = this._getCurrentAppState();
       const currentUrl = window.location.href;
-      // Extract the base URL considering 'display'
-      let baseUrl;
+
+      // Extract the base URL
+      const baseUrl = this._extractBaseUrl(currentUrl);
+
+      // Update the appState with the viewsNr
+      appState.viewsNr = viewsNr;
+
+      // Handle appState encoding and URL construction
+      const appStateEncoded = this.compressAndEncode(appState);
+      const newUrl = this._constructNewUrl(baseUrl, appState, appStateEncoded);
+
+      // Update the model and browser URL
+      this._updateAppStateModelAndUrl(appStateEncoded, newUrl);
+    },
+
+    _extractBaseUrl: function (currentUrl) {
       if (
         currentUrl.includes("display") &&
         (currentUrl.includes("?", currentUrl.indexOf("display")) || currentUrl.includes("&", currentUrl.indexOf("display")))
       ) {
-        // Determine the position of the first `?` or `&` after "display"
         const questionMarkIndex = currentUrl.indexOf("?", currentUrl.indexOf("display"));
         const ampersandIndex = currentUrl.indexOf("&", currentUrl.indexOf("display"));
 
-        // Find the earliest occurrence of `?` or `&` after "display"
-        const cutoffIndex = questionMarkIndex !== -1 && ampersandIndex !== -1
-          ? Math.min(questionMarkIndex, ampersandIndex)
-          : questionMarkIndex !== -1
-            ? questionMarkIndex
-            : ampersandIndex;
+        const cutoffIndex =
+          questionMarkIndex !== -1 && ampersandIndex !== -1
+            ? Math.min(questionMarkIndex, ampersandIndex)
+            : questionMarkIndex !== -1
+              ? questionMarkIndex
+              : ampersandIndex;
 
-        baseUrl = cutoffIndex !== -1 ? currentUrl.substring(0, cutoffIndex) : currentUrl;
-      } else {
-        baseUrl = currentUrl;
+        return cutoffIndex !== -1 ? currentUrl.substring(0, cutoffIndex) : currentUrl;
       }
-      let appStateModel = this.getOwnerComponent().getModel("appStateModel");
-      let appStateModelState = appStateModel ? appStateModel.getProperty("/appState") : null;
-      // let isClicked = appStateModel ? appStateModel.getProperty("/clickedList") : null;
-
-      let appStateModelStateDecoded = appStateModelState ? this.decompressAndDecode(appStateModelState) : null;
-
-      let newUrl;
-      let appStateEncoded;
-
-      appState.viewsNr = viewsNr;
-      // Check if appStateModelStateDecoded exists before accessing properties
-      if (this._isListClicked) {
-        // Handle the case where isClicked takes precedence
-        this._isListClicked = false; // Reset the flag
-        appStateEncoded = this.compressAndEncode(appState);
-        // newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}?appState=${appStateEncoded}`;
-        // } else if (appStateModelStateDecoded && appStateModelStateDecoded.selectedDetailKeys && Object.keys(appStateModelStateDecoded.selectedDetailKeys).length > 0) {
-        //   // If selectedDetailKeys exist and have data
-        //   appState.selectedDetailKeys = appStateModelStateDecoded.selectedDetailKeys;
-        //   // Encode the appState object
-        //   appStateEncoded = this.compressAndEncode(appState);
-        //   newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}/picktaskdetail/${appState.selectedDetailKeys.DELIVERY_NR}/${appState.selectedDetailKeys.DELIVERY_ITEM_NR}/${appState.selectedDetailKeys.MATERIAL_NR}/${appState.selectedDetailKeys.STATUS}/?appState=${appStateEncoded}`;
-      } else if (appState && appState.selectedItem) {
-        // Encode the appState object
-        appStateEncoded = this.compressAndEncode(appState);
-        // If only selectedItem exists
-        newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}/?appState=${appStateEncoded}`;
-      } else if (appState) {
-        // Encode the appState object
-        appStateEncoded = this.compressAndEncode(appState);
-        // Default case, no selectedDetailKeys or selectedItem
-        newUrl = `${baseUrl}?appState=${appStateEncoded}`;
-      } else {
-        newUrl = baseUrl; // No appState, so keep the base URL
-      }
-
-
-      appStateModel.setProperty("/appState", appStateEncoded);
-
-      // Update the browser's URL without reloading the page
-      window.history.replaceState({ path: newUrl }, "", newUrl);
+      return currentUrl;
     },
 
+    _constructNewUrl: function (baseUrl, appState, appStateEncoded) {
+      if (this._isListClicked) {
+        // Reset the flag and encode appState
+        this._isListClicked = false;
+        return baseUrl; // No URL update needed, return baseUrl
+      } else if (appState && appState.selectedItem) {
+        // Construct URL for selectedItem
+        return `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}/?appState=${appStateEncoded}`;
+      } else if (appState) {
+        // Default case
+        return `${baseUrl}?appState=${appStateEncoded}`;
+      }
+      return baseUrl; // No appState, return baseUrl
+    },
+
+    _updateAppStateModelAndUrl: function (appStateEncoded, newUrl) {
+      const appStateModel = this.getOwnerComponent().getModel("appStateModel");
+      appStateModel.setProperty("/appState", appStateEncoded);
+
+      if (newUrl) {
+        // Update the browser's URL without reloading the page
+        window.history.replaceState({ path: newUrl }, "", newUrl);
+      }
+    },
+
+
+
+    //End of saving app state
+
+    // Update app state
     _updateAppState: function () {
       const currentHash = window.location.hash;
 
@@ -166,9 +226,9 @@ sap.ui.define([
       window.history.replaceState({ path: newUrl }, "", newUrl);
     },
 
-    _restoreAppState: function (appState) {
-      this._isRestoringState = true; // Flag to indicate restoration is in progress
+    // End of updating app state
 
+    _restoreAppState: function (appState) {
       if (appState.filters) {
         this._applyFilters(appState.filters, true); // Pass isRestoring = true
       }
@@ -178,8 +238,6 @@ sap.ui.define([
       if (appState.filterVisibility) {
         this._restoreFilterVisibility(appState.filterVisibility);
       }
-
-      this._isRestoringState = false; // Reset the flag
     },
 
     _getCurrentAppState: function () {
@@ -319,19 +377,15 @@ sap.ui.define([
         console.error("No list item selected.");
         return;
       }
+      var oDetailModel = this.getOwnerComponent().getModel("detailModel");
+      oDetailModel.setProperty("/showListFooter", false);
+      oDetailModel.setProperty("/showDetailFooter", true);
       const oContext = oSelectedItem.getBindingContext();
       const selectedItemId = oContext ? oContext.getProperty("ShippingRequestId") : null;
 
       if (!selectedItemId) {
         return;
       }
-
-      // Update the app view layout and navigate
-      this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
-
-      this.getRouter().navTo("Details", {
-        SHIPPING_REQUEST_ID: selectedItemId
-      }, { replace: true });
 
       this._isListClicked = true;
 
@@ -340,6 +394,15 @@ sap.ui.define([
       let appStateModel = this.getOwnerComponent().getModel("appStateModel");
       appStateModel.setProperty("/clicked", true);
       appStateModel.setProperty("/viewsNr", 2);
+
+      // Update the app view layout and navigate
+      this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+
+      this.getRouter().navTo("Details", {
+        SHIPPING_REQUEST_ID: selectedItemId
+      }, { replace: true });
+
+
     },
 
     onClearFilters: function () {

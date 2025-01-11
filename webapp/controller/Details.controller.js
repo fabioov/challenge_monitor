@@ -29,7 +29,6 @@ sap.ui.define([
         onInit: function () {
             this._appStateModel = this.getOwnerComponent().getModel("appStateModel");
             // Attach route pattern matched event
-
             this.getOwnerComponent().getRouter().getRoute("Details")
                 .attachPatternMatched(this._onBindingDetails, this);
 
@@ -139,21 +138,8 @@ sap.ui.define([
 
         _onBindingDetails: function (oEvent) {
             //TODO: Verify that we only need to retrieve data from the appStateModel and not from the URL
-            let appStateModel = this.getOwnerComponent().getModel("appStateModel");
-            let modelAppState = appStateModel.oData.appState;
-            let isClicked = appStateModel.oData.clicked;
-            let modelAppStateDecompressed = modelAppState
-                ? this.decompressAndDecode(modelAppState)
-                : {};
-
-            let appStateFromUrl = this.getAppStateFromUrl();
-            let appStateFromUrlDecompressed;
-            if (appStateFromUrl) {
-                appStateFromUrlDecompressed = this.decompressAndDecode(appStateFromUrl);
-            }
 
             let shippingRequestId = "0000000" + oEvent.getParameter("arguments").SHIPPING_REQUEST_ID;
-            let appStateToSave = modelAppState ? modelAppState : appStateFromUrl;
 
             // Get the view and the OData model
             let oView = this.getView();
@@ -170,8 +156,17 @@ sap.ui.define([
                     filters: aFilters,
                     success: function (oData) {
                         if (oData.results.length > 0) {
+                            // Loop through the results and update PICKING_TASK_ID if it's empty
+                            oData.results.forEach((item) => {
+                                if (!item.PICKING_TASK_ID || item.PICKING_TASK_ID.trim() === "") {
+                                    item.PICKING_TASK_ID = "N/A";
+                                }
+                            });
+
+                            // Create a new JSON model and set it to the view
                             let oItemsModel = new JSONModel(oData);
                             oView.setModel(oItemsModel, "Details");
+
                         }
                         resolve(); // Resolve the promise when details binding is complete
                     },
@@ -198,11 +193,35 @@ sap.ui.define([
             // Wait for the "Details" binding to complete before restoring the state
             bindDetailsPromise
                 .then(() => {
-                    if (isClicked === false || isClicked === undefined) {
-                        this._restoreState(appStateFromUrl);
+                    // let appStateModel = this.getOwnerComponent().getModel("appStateModel");
+                    // let modelAppState = appStateModel.oData.appState;
+                    // let isClicked = appStateModel.oData.clicked;
+                    // let modelAppStateDecompressed = modelAppState
+                    //     ? this.decompressAndDecode(modelAppState)
+                    //     : {};
+
+                    // if (isClicked === false || isClicked === undefined) {
+                    //     let appStateFromUrl = this.getAppStateFromUrl();
+                    //     let appStateFromUrlDecompressed;
+                    //     if (appStateFromUrl) {
+                    //         appStateFromUrlDecompressed = this.decompressAndDecode(appStateFromUrl);
+                    //     }
+                    //     this._restoreState(appStateFromUrl);
+                    // } else {
+                    //     appStateModel.setProperty("/clicked", false);
+                    //     this._saveState(modelAppState, modelAppStateDecompressed.selectedDetailKeys, modelAppState.viewsNr)
+                    // }
+                    const appStateModel = this.getOwnerComponent().getModel("appStateModel");
+                    const modelAppState = appStateModel.oData.appState;
+                    const isClicked = appStateModel.oData.clicked;
+                    const modelAppStateDecompressed = modelAppState
+                        ? this.decompressAndDecode(modelAppState)
+                        : {};
+
+                    if (this._shouldRestoreState(isClicked)) {
+                        this._handleRestoreState();
                     } else {
-                        appStateModel.setProperty("/clicked", false);
-                        this._saveState(modelAppState, modelAppStateDecompressed.selectedDetailKeys, modelAppState.viewsNr)
+                        this._handleSaveState(appStateModel, modelAppState, modelAppStateDecompressed);
                     }
                 })
                 .catch((error) => {
@@ -213,6 +232,23 @@ sap.ui.define([
             bindHeaderPromise.catch((error) => {
                 console.error("Error in binding Header:", error);
             });
+        },
+
+        _shouldRestoreState: function (isClicked) {
+            return isClicked === false || isClicked === undefined;
+        },
+
+        _handleRestoreState: function () {
+            const appStateFromUrl = this.getAppStateFromUrl();
+            if (appStateFromUrl) {
+                const appStateFromUrlDecompressed = this.decompressAndDecode(appStateFromUrl);
+                this._restoreState(appStateFromUrl);
+            }
+        },
+
+        _handleSaveState: function (appStateModel, modelAppState, modelAppStateDecompressed) {
+            appStateModel.setProperty("/clicked", false);
+            this._saveState(modelAppState, modelAppStateDecompressed.selectedDetailKeys, modelAppState.viewsNr);
         },
 
         _updateUrlOnCloseView: function (currentAppState) {
@@ -234,8 +270,12 @@ sap.ui.define([
 
         onCloseDetailView: function () {
             var oDetailModel = this.getOwnerComponent().getModel("detailModel");
-            oDetailModel.setProperty("/showListFooter", true);
+            var oPopoverModel = this.getOwnerComponent().getModel("popoverModel");
             oDetailModel.setProperty("/showDetailFooter", false);
+
+            if (oPopoverModel.getProperty("/messageLength") > 0) {
+                oDetailModel.setProperty("/showListFooter", true);
+            }
 
             // Get the owner component
             var oComponent = this.getOwnerComponent();
@@ -259,56 +299,93 @@ sap.ui.define([
             this._updateUrlOnCloseView(currentAppState);
         },
 
+        onUpdateFinished: function () {
+            const oTable = this.byId("itemsTable");
+            const selectedKeys = this.getView().getModel("appStateModel").getProperty("/selectedKeys");
+
+            if (selectedKeys) {
+                const items = oTable.getItems();
+                items.forEach((item) => {
+                    const context = item.getBindingContext("Details");
+                    const itemData = context.getObject();
+
+                    if (
+                        itemData.SHIPPING_REQUEST_ID === selectedKeys.SHIPPING_REQUEST_ID &&
+                        itemData.DELIVERY_NR === selectedKeys.DELIVERY_NR &&
+                        itemData.DELIVERY_ITEM_NR === selectedKeys.DELIVERY_ITEM_NR &&
+                        itemData.MATERIAL_NR === selectedKeys.MATERIAL_NR
+                    ) {
+                        oTable.setSelectedItem(item);
+                    }
+                });
+            }
+        },
+
+        // Select an item from table section //
+
         onSelectedItem: function (oEvent) {
-            // if (this._isNavigating) {
-            //     console.log("Navigation already in progress. Skipping.");
-            //     return;
-            // }
+            const bReplace = !Device.system.phone;
+            const oSelectedItem = oEvent.getParameter("listItem");
+            const oContext = oSelectedItem.getBindingContext("Details");
 
-            // this._isNavigating = true; // Set the flag
-            var bReplace = !Device.system.phone;
-            var oSelectedItem = oEvent.getParameter("listItem");
-            var oContext = oSelectedItem.getBindingContext("Details");
+            // Extract unique identifier keys for the selected item
+            const selectedKeys = this._getSelectedItemKeys(oContext);
 
-            var sShippingRequestId = oContext.getProperty("SHIPPING_REQUEST_ID");
-            var sDeliveryNr = oContext.getProperty("DELIVERY_NR");
-            var sDeliveryItemNr = oContext.getProperty("DELIVERY_ITEM_NR");
-            var sMaterialNr = oContext.getProperty("MATERIAL_NR");
-            var oHeaderModel = this.getModel("Header");
-            var sStatus = oHeaderModel.getData().Status;
+            // Save the unique keys to maintain selection after updates
+            this._setSelectedItemKeys(selectedKeys);
 
-            var keys = {
-                SHIPPING_REQUEST_ID: sShippingRequestId,
-                DELIVERY_NR: sDeliveryNr,
-                DELIVERY_ITEM_NR: sDeliveryItemNr,
-                MATERIAL_NR: sMaterialNr,
-                STATUS: sStatus
-            };
-
+            // Save the application state
             const sAppState = this.getAppStateFromUrl();
+            this._saveState(sAppState, selectedKeys, 3);
 
-            this.getModel("appView").setProperty("/layout", "ThreeColumnsMidExpanded");
+            // Update appStateModel and appView layout
+            this._updateAppStateModel();
+
+            // Navigate to the detailed view
+            this._navigateToDetailView(selectedKeys, bReplace);
+        },
+
+
+        _setSelectedItemKeys: function (selectedKeys) {
+            const oView = this.getView();
+            oView.getModel("appStateModel").setProperty("/selectedKeys", selectedKeys);
+        },
+
+
+        _getSelectedItemKeys: function (oContext) {
+            const oHeaderModel = this.getModel("Header");
+            return {
+                SHIPPING_REQUEST_ID: oContext.getProperty("SHIPPING_REQUEST_ID"),
+                DELIVERY_NR: oContext.getProperty("DELIVERY_NR"),
+                DELIVERY_ITEM_NR: oContext.getProperty("DELIVERY_ITEM_NR"),
+                MATERIAL_NR: oContext.getProperty("MATERIAL_NR"),
+                STATUS: oHeaderModel.getData().Status
+            };
+        },
+
+        _updateAppStateModel: function () {
+            const appStateModel = this.getOwnerComponent().getModel("appStateModel");
+            appStateModel.setProperty("/clicked", true);
+
+            const appViewModel = this.getModel("appView");
+            appViewModel.setProperty("/layout", "ThreeColumnsMidExpanded");
+        },
+
+        _navigateToDetailView: function (keys, bReplace) {
             this.getRouter().navTo(
                 "PickTaskDetail",
                 {
-                    SHIPPING_REQUEST_ID: sShippingRequestId,
-                    DELIVERY_NR: sDeliveryNr,
-                    DELIVERY_ITEM_NR: sDeliveryItemNr,
-                    MATERIAL_NR: sMaterialNr,
-                    STATUS: sStatus
+                    SHIPPING_REQUEST_ID: keys.SHIPPING_REQUEST_ID,
+                    DELIVERY_NR: keys.DELIVERY_NR,
+                    DELIVERY_ITEM_NR: keys.DELIVERY_ITEM_NR,
+                    MATERIAL_NR: keys.MATERIAL_NR,
+                    STATUS: keys.STATUS
                 },
                 { replace: bReplace }
             );
-
-            this._saveState(sAppState, keys, 3);
-
-            let appStateModel = this.getOwnerComponent().getModel("appStateModel");
-            appStateModel.setProperty("/clicked", true);
-
-            // setTimeout(() => {
-            //     this._isNavigating = false; // Reset the flag after navigation completes
-            // }, 500); // Adjust timeout based on navigation speed
         },
+
+        // end of select an item from table section
 
         onChangeStatus: function () {
             var oModel = this.getView().getModel();

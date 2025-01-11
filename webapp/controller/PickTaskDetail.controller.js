@@ -594,7 +594,7 @@ sap.ui.define([
 							}
 						});
 					});
-					this.onSubmitChanges(sGroupId);
+					this._onSubmitChanges(sGroupId);
 				}.bind(this)).catch((error) => {
 					console.error("Metadata load error:", error);
 					that._oBusyDialog.close();
