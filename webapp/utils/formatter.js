@@ -156,6 +156,14 @@ sap.ui.define([
             return value === latestVersion ? "Success" : "None";
         },
 
+        formatUnitForLatestVersion: function (value) {
+            let oModel = this.getView().getModel("History");
+            let latestVersion = oModel.getProperty("/LatestVersion");
+        
+            // Return "Latest Version" only for the latest version
+            return value === latestVersion ? "Newest Version" : "";
+        },
+
         formatVersionInversion: function (value) {
             let oModel = this.getView().getModel("History");
             let latestVersion = oModel.getProperty("/LatestVersion");

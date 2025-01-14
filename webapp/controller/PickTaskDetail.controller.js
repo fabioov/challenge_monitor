@@ -121,7 +121,7 @@ sap.ui.define([
 							oPickDetailsModel.setData(oData.results[0]);
 							let quantityProgress;
 							let quantityProgressValue;
-							if (oData.results[0].QUANTITY > 0) {
+							if (oData.results[0].QUANTITY_PICKED > 0) {
 								quantityProgress = oData.results[0].QUANTITY_PICKED / oData.results[0].QUANTITY;
 								quantityProgressValue = quantityProgress * 100;
 							} else {
@@ -233,6 +233,7 @@ sap.ui.define([
 						oData.LatestVersion = latestVersion;
 						let oJSONModel = new JSONModel(oData);
 						oView.setModel(oJSONModel, "History");
+						debugger;
 
 						// Load the fragment only after data is successfully fetched
 						if (!this._ItemHistory) {
@@ -706,10 +707,6 @@ sap.ui.define([
 				const oBindingContext = oSelectedItem.getBindingContext("Details");
 				const oItemData = oBindingContext.getObject();
 
-
-				// aFilters.push(new Filter("DELIVERY_NR", FilterOperator.EQ, deliveryNr));
-				// aFilters.push(new Filter("DELIVERY_ITEM_NR", FilterOperator.EQ, deliveryItemNr));
-				// aFilters.push(new Filter("MATERIAL_NR", FilterOperator.EQ, materialNr));
 				aFilters.push(new Filter("DELIVERY_NR", FilterOperator.EQ, oItemData.DELIVERY_NR));
 				aFilters.push(new Filter("DELIVERY_ITEM_NR", FilterOperator.EQ, oItemData.DELIVERY_ITEM_NR));
 				aFilters.push(new Filter("MATERIAL_NR", FilterOperator.EQ, oItemData.MATERIAL_NR));

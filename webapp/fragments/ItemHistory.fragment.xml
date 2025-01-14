@@ -17,7 +17,10 @@
                 noDataText="{i18n>noDataText}"
             >
                 <columns>
-                    <Column id="_IDGenCol4444" width="10em">
+                    <Column
+                        id="_IDGenCol4444"
+                        width="10em"
+                    >
                         <Text
                             id="_IDGen5"
                             text="{i18n>hdShippingRequest}"
@@ -38,7 +41,10 @@
                             text="{i18n>hdPickingTaskVersion}"
                         />
                     </Column>
-                    <Column id="_IDGenColumn3" width="8em">
+                    <Column
+                        id="_IDGenColumn3"
+                        width="8em"
+                    >
                         <Text
                             id="_IDGenText3"
                             text="{i18n>hdDeliveryNr}"
@@ -53,7 +59,10 @@
                             text="{i18n>hdDeliveryItemNr}"
                         />
                     </Column>
-                    <Column id="_IDGfdf66" width="8em">
+                    <Column
+                        id="_IDGfdf66"
+                        width="8em"
+                    >
                         <Text
                             id="_IDGe5465654"
                             text="{i18n>hdMaterial}"
@@ -77,13 +86,19 @@
                             text="{i18n>hdQtyPicked}"
                         />
                     </Column>
-                    <Column id="_Id9003" width="8em">
+                    <Column
+                        id="_Id9003"
+                        width="8em"
+                    >
                         <Text
                             id="_IDTxt9003"
                             text="{i18n>hdUser}"
                         />
                     </Column>
-                    <Column id="_Id9004">
+                    <Column
+                        id="_Id9004"
+                        width="10em"
+                    >
                         <Text
                             id="_IDTxt9004"
                             text="{i18n>hdPickingTaskStatus}"
@@ -101,18 +116,31 @@
                                 id="_IDGenObjectIdentifier1"
                                 title="{History>PickingTaskId}"
                             />
-                            <ObjectNumber
-                                id="_IDGenObjectIdentifier3"
-                                number="{History>PickingTaskVersion}"
-                                state="{
-                                    path: 'History>PickingTaskVersion',
-                                    formatter: '.Formatter.formatVersionState'
-                                }"
-                                inverted="{
-                                    path: 'History>PickingTaskVersion',
-                                    formatter: '.Formatter.formatVersionInversion'
-                                }"
-                            />
+                            <HBox
+                                id="picktaskversionlatest"
+                                alignItems="Center"
+                                justifyContent="SpaceBetween"
+                                class="versionContainer"
+                            >
+                                <ObjectNumber
+                                    id="_IDGenObjectIdentifier3"
+                                    number="{History>PickingTaskVersion}"
+                                    state="{
+                                        path: 'History>PickingTaskVersion',
+                                        formatter: '.Formatter.formatVersionState'
+                                    }"
+                                    inverted="{
+                                        path: 'History>PickingTaskVersion',
+                                        formatter: '.Formatter.formatVersionInversion'
+                                    }"
+                                />
+                                <Text
+                                    id="latestVersionLabel"
+                                    text="{= ${History>PickingTaskVersion} === ${History>/LatestVersion} ? ${i18n>hdLatestVersion} : '' }"
+                                    visible="{= ${History>PickingTaskVersion} === ${History>/LatestVersion} }"
+                                    class="latestVersionText"
+                                />
+                            </HBox>
                             <Text
                                 id="_IDGenText9"
                                 text="{History>DeliveryNr}"
@@ -134,8 +162,8 @@
                             <ObjectNumber
                                 id="_IDGenObjectNumber2000"
                                 active="true"
-                                number="{History>Quantity_Picked}"
-                                unit="{History>QuantityPickUOM}"
+                                number="{History>QuantityPicked}"
+                                unit="{History>QuantityPickedUOM}"
                             />
                             <Text
                                 id="idPickingUser"
@@ -157,7 +185,7 @@
                 </items>
             </Table>
         </content>
-         <beginButton>
+        <beginButton>
             <Button
                 id="IdCloseButton"
                 text="{i18n>btnClose}"

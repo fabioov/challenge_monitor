@@ -7,9 +7,15 @@
         id="Dialog"
         contentWidth="800px"
         class="sapUiResponsiveContentPadding"
-        title="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogTitle'}"
+        title="{
+            path: 'buttonActionModel>/action',
+            formatter: '.Formatter.setPickingTaskDialogTitle'
+        }"
         titleAlignment="Center"
-        tooltip="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogTooltip'}"
+        tooltip="{
+            path: 'buttonActionModel>/action',
+            formatter: '.Formatter.setPickingTaskDialogTooltip'
+        }"
         icon="sap-icon://hint"
         resizable="true"
         draggable="true"
@@ -89,23 +95,13 @@
                                 selected="{PickingTaskList>isChecked}"
                                 select="onCheckBoxSelect"
                             />
-                            <ObjectStatus
-                                id="_ID36265395623"
-                                active="true"
-                                icon="{= ${PickingTaskList>PICKING_TASK_ID} ? '' : 'sap-icon://error' }"
-                                iconDensityAware="true"
-                                inverted="{= ${PickingTaskList>PICKING_TASK_ID} ? false : true }"
-                                state="{= ${PickingTaskList>PICKING_TASK_ID} ? 'None' : 'Error' }"
-                                text="{= ${PickingTaskList>PICKING_TASK_ID} ? ${PickingTaskList>PICKING_TASK_ID} : 'Sem Tarefa' }"
+                            <Text
+                                id="_IDGenTextPICKTASK"
+                                text="{= ${PickingTaskList>PICKING_TASK_ID} ? ${PickingTaskList>PICKING_TASK_ID} : 'N/A' }"
                             />
-                            <ObjectStatus
-                                id="_IDGenObjectStatus1632563"
-                                active="true"
-                                icon="{= ${PickingTaskList>PICKING_TASK_VERSION} ? '' : 'sap-icon://error' }"
-                                iconDensityAware="true"
-                                inverted="{= ${PickingTaskList>PICKING_TASK_VERSION} ? false : true }"
-                                state="{= ${PickingTaskList>PICKING_TASK_VERSION} ? 'None' : 'Error' }"
-                                text="{= ${PickingTaskList>PICKING_TASK_VERSION} ? ${PickingTaskList>PICKING_TASK_VERSION} : 'Sem Versão' }"
+                                                        <Text
+                                id="_IDGenTextPICKTASKVERSION"
+                                text="{= ${PickingTaskList>PICKING_TASK_VERSION} ? ${PickingTaskList>PICKING_TASK_VERSION} : 'N/A' }"
                             />
                             <Text
                                 id="_IDGenText2001"
@@ -128,12 +124,20 @@
             <Button
                 id="IdActionButton"
                 press="onPickingTaskAction"
-                text="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogButtonText'}"
-                icon="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogButtonIcon'}"
-                type="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogButtonType'}"
+                text="{
+                    path: 'buttonActionModel>/action',
+                    formatter: '.Formatter.setPickingTaskDialogButtonText'
+                }"
+                icon="{
+                    path: 'buttonActionModel>/action',
+                    formatter: '.Formatter.setPickingTaskDialogButtonIcon'
+                }"
+                type="{
+                    path: 'buttonActionModel>/action',
+                    formatter: '.Formatter.setPickingTaskDialogButtonType'
+                }"
             />
         </beginButton>
-
         <endButton>
             <Button
                 id="IdCloseButton100"
