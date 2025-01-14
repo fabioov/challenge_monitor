@@ -274,8 +274,19 @@
 							>
 								<m:columns>
 									<m:Column
+										id="ColumnStatus"
+										width="2em"
+									>
+										<m:header>
+											<m:Label
+												id="_IDGenLabel145647"
+												text="{i18n>dtStatus}"
+											/>
+										</m:header>
+									</m:Column>
+									<m:Column
 										id="Columnpre"
-										width="8em"
+										width="6em"
 									>
 										<m:header>
 											<m:Label
@@ -324,6 +335,12 @@
 										type="Navigation"
 									>
 										<m:cells>
+											<core:Icon
+												id="IconStatus"
+												src="{= ${Details>STATUS} === 'Finalizado' ? 'sap-icon://message-success' : ${Details>STATUS} === 'Em Processamento' ? 'sap-icon://lateness' : 'sap-icon://project-definition-triangle' }"
+												color="{= ${Details>STATUS} === 'Finalizado' ? 'green' : ${Details>STATUS} === 'Em Processamento' ? 'orange' : 'gray' }"
+												size="1rem"
+											/>
 											<m:Text
 												id="Text03265"
 												text="{Details>PICKING_TASK_ID}"

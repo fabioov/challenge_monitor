@@ -12,8 +12,7 @@
 		enableLazyLoading="true"
 		showTitleInHeaderContent="true"
 		upperCaseAnchorBar="false"
-		>
-	
+	>
 		<headerTitle>
 			<ObjectPageDynamicHeaderTitle id="_IDGenObjectPageDynamicHeaderTitle1">
 				<expandedHeading>
@@ -62,7 +61,10 @@
 						text="{i18n>ptDhIconCreateText}"
 						tooltip="{i18n>ptDhIconCreateTooltip}"
 						importance="Medium"
-						visible="{path: 'PickTaskDetail>/SHIPPING_REQUEST_STATUS', formatter: '.Formatter.statusButtonVisibility'}"
+						visible="{
+							path: 'PickTaskDetail>/SHIPPING_REQUEST_STATUS',
+							formatter: '.Formatter.statusButtonVisibility'
+						}"
 						press="onOpenPickingTaskDialog"
 					/>
 					<ObjectPageHeaderActionButton
@@ -71,7 +73,10 @@
 						text="{i18n>ptDhIconRestartText}"
 						tooltip="{i18n>ptDhIconRestartTooltip}"
 						importance="Medium"
-						visible="{path: 'PickTaskDetail>/SHIPPING_REQUEST_STATUS', formatter: '.Formatter.restartPickTaskVisisibility'}"
+						visible="{
+							path: 'PickTaskDetail>/SHIPPING_REQUEST_STATUS',
+							formatter: '.Formatter.restartPickTaskVisisibility'
+						}"
 						press="onOpenPickingTaskDialog"
 					/>
 					<ObjectPageHeaderActionButton
@@ -81,7 +86,10 @@
 						tooltip="{i18n>ptDhIconDeleteTooltip}"
 						type="Reject"
 						importance="Medium"
-						visible="{path: 'PickTaskDetail>/SHIPPING_REQUEST_STATUS', formatter: '.Formatter.statusButtonVisibility'}"
+						visible="{
+							path: 'PickTaskDetail>/SHIPPING_REQUEST_STATUS',
+							formatter: '.Formatter.statusButtonVisibility'
+						}"
 						press="onOpenPickingTaskDialog"
 					/>
 					<ObjectPageHeaderActionButton
@@ -101,24 +109,21 @@
 				wrap="Wrap"
 				direction="Column"
 			>
-				<m:HBox
-					id="HorizontalLayout"
-					class="sapUiSmallMarginEnd"
-				>
+				<!-- First Row: Delivery Number -->
+				<m:HBox id="HorizontalLayout">
 					<m:Text
 						id="Label"
 						text="{i18n>ptDhDeliveryNr}"
 						class="sapUiSmallMarginEnd"
 					/>
-					<m:Link
+					<m:Text
 						id="idText9000"
 						text="{PickTaskDetail>/DELIVERY_NR}"
+						class="sapUiSmallMarginEnd"
 					/>
 				</m:HBox>
-				<m:HBox
-					id="HorizontalLayout2"
-					class="sapUiSmallMarginEnd"
-				>
+				<!-- Second Row: Delivery Item -->
+				<m:HBox id="HorizontalLayout2">
 					<m:Text
 						id="Label2"
 						text="{i18n>ptDhDeliveryItem}"
@@ -129,6 +134,7 @@
 						text="{PickTaskDetail>/DELIVERY_ITEM_NR}"
 					/>
 				</m:HBox>
+				<!-- Third Row: Material -->
 				<m:HBox id="HorizontalLayout3">
 					<m:Text
 						id="Label3"
@@ -140,6 +146,20 @@
 						text="{PickTaskDetail>/MATERIAL_NR}"
 					/>
 				</m:HBox>
+				<m:HBox id="HorizontalLayout001">
+					<!-- Status ObjectStatus -->
+					<m:ObjectStatus
+						text="{= ${PickTaskDetail>/STATUS} === 'Finalizado' ? ${i18n>hdStatusDone} : 
+							(${PickTaskDetail>/STATUS} === 'Em Processamento' ? ${i18n>hdStatusProcessing} : 
+								(${PickTaskDetail>/STATUS} === '' ? 'N/A' : ${i18n>hdStatusRestarted})
+							) }"
+						state="{= ${PickTaskDetail>/STATUS} === 'Finalizado' ? 'Success' : ${PickTaskDetail>/STATUS} === 'Em Processamento' ? 'Warning' : 'None'}"
+						id="statusStat0001"
+						icon="{= ${PickTaskDetail>/STATUS} === 'Finalizado' ? 'sap-icon://message-success' : ${PickTaskDetail>/STATUS} === 'Em Processamento' ? 'sap-icon://lateness' : 'sap-icon://project-definition-triangle' }"
+						inverted="true"
+						class="sapMObjectStatusLarge"
+					/>
+				</m:HBox>
 			</m:FlexBox>
 		</headerContent>
 		<sections>
@@ -148,9 +168,7 @@
 				title="{i18n>ptSubTitleMaterial}"
 			>
 				<subSections>
-					<ObjectPageSubSection
-						titleUppercase="false"
-					>
+					<ObjectPageSubSection titleUppercase="false">
 						<blocks>
 							<m:FlexBox
 								id="material"
@@ -243,6 +261,17 @@
 										text="{PickTaskDetail>/PICKING_TASK_ID}"
 									/>
 								</m:HBox>
+								<m:HBox id="HBox1234652567">
+									<m:Text
+										id="Label2645567"
+										text="{i18n>ptSsVersion}"
+										class="sapUiSmallMarginEnd"
+									/>
+									<m:Text
+										id="idText900026453667"
+										text="{PickTaskDetail>/PICKING_TASK_VERSION}"
+									/>
+								</m:HBox>
 								<m:HBox id="HorizontalLayout36890">
 									<m:Text
 										id="Label36890"
@@ -256,21 +285,6 @@
 										unit="{PickTaskDetail>/TASK_QUANTITY_UM}"
 									/>
 								</m:HBox>
-								<m:HBox id="HorizontalLayout36890123">
-									<m:Text
-										id="Label368901213"
-										text="{i18n>ptSsStatus}"
-										class="sapUiSmallMarginEnd"
-									/>
-									<m:ObjectStatus
-										text="{= ${PickTaskDetail>/STATUS} === 'Finalizado' ? ${i18n>hdStatusDone} : ${PickTaskDetail>/STATUS} === 'Em Processamento' ? ${i18n>hdStatusProcessing} : ${i18n>hdStatusRestarted}}"
-										state="{= ${PickTaskDetail>/STATUS} ? 'Success' : 'None'}"
-										id="status10077"
-										icon="{= ${PickTaskDetail>/STATUS} === 'Finalizado' ? 'sap-icon://message-success' : ${PickTaskDetail>/STATUS} === 'Em Processamento' ? 'sap-icon://lateness' : 'sap-icon://media-rewind' }"
-										inverted="true"
-										class="sapMObjectStatusSmall"
-									/>
-								</m:HBox>
 								<m:HBox id="HorizontalLayout36890123555">
 									<m:Text
 										id="Label368901213555"
@@ -280,6 +294,20 @@
 									<m:Text
 										id="idText900026452255555555"
 										text="{= ${PickTaskDetail>/PICKING_USER} ? ${PickTaskDetail>/PICKING_USER} : ${i18n>ptDhUserNotAssigned}}"
+									/>
+								</m:HBox>
+								<m:HBox id="ProgressIndicatorBox" width="100%">
+									<m:Text
+										text="{i18n>ptSsProgress}"
+										class="sapUiSmallMarginEnd"
+									/>
+									<m:ProgressIndicator
+										id="piProgressIndicator"
+										percentValue="{PickTaskDetail>/quantityProgress}"
+										displayValue="{PickTaskDetail>/quantityProgress}"
+										state="Success"
+										displayOnly="true"
+										class="progressIndicator"
 									/>
 								</m:HBox>
 							</m:FlexBox>

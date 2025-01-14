@@ -3,3 +3,7 @@
     position: absolute;
 }
 
+.progressIndicator {
+    width: 200px !important;
+}
+

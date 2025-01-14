@@ -163,6 +163,15 @@ sap.ui.define([
                                 }
                             });
 
+                            // Sort the results by PICKING_TASK_ID
+                            oData.results.sort((a, b) => {
+                                const idA = a.PICKING_TASK_ID.toUpperCase(); // Handle case-insensitive sorting
+                                const idB = b.PICKING_TASK_ID.toUpperCase();
+                                if (idA < idB) return -1;
+                                if (idA > idB) return 1;
+                                return 0;
+                            });
+
                             // Create a new JSON model and set it to the view
                             let oItemsModel = new JSONModel(oData);
                             oView.setModel(oItemsModel, "Details");
@@ -193,23 +202,6 @@ sap.ui.define([
             // Wait for the "Details" binding to complete before restoring the state
             bindDetailsPromise
                 .then(() => {
-                    // let appStateModel = this.getOwnerComponent().getModel("appStateModel");
-                    // let modelAppState = appStateModel.oData.appState;
-                    // let isClicked = appStateModel.oData.clicked;
-                    // let modelAppStateDecompressed = modelAppState
-                    //     ? this.decompressAndDecode(modelAppState)
-                    //     : {};
-
-                    // if (isClicked === false || isClicked === undefined) {
-                    //     let appStateFromUrl = this.getAppStateFromUrl();
-                    //     let appStateFromUrlDecompressed;
-                    //     if (appStateFromUrl) {
-                    //         appStateFromUrlDecompressed = this.decompressAndDecode(appStateFromUrl);
-                    //     }
-                    //     this._restoreState(appStateFromUrl);
-                    // } else {
-                    //     appStateModel.setProperty("/clicked", false);
-                    //     this._saveState(modelAppState, modelAppStateDecompressed.selectedDetailKeys, modelAppState.viewsNr)
                     // }
                     const appStateModel = this.getOwnerComponent().getModel("appStateModel");
                     const modelAppState = appStateModel.oData.appState;

@@ -5,7 +5,7 @@
 >
     <Dialog
         id="Dialog"
-        contentWidth="780px"
+        contentWidth="800px"
         class="sapUiResponsiveContentPadding"
         title="{path: 'buttonActionModel>/action', formatter: '.Formatter.setPickingTaskDialogTitle'}"
         titleAlignment="Center"
@@ -24,7 +24,7 @@
                 <columns>
                     <Column
                         id="Colum7100"
-                        width="5em"
+                        width="8em"
                     >
                         <Text
                             id="Text84561"
@@ -33,7 +33,7 @@
                     </Column>
                     <Column
                         id="Column400"
-                        width="10em"
+                        width="12em"
                     >
                         <Text
                             id="Text400444"
@@ -42,7 +42,7 @@
                     </Column>
                     <Column
                         id="Column5000"
-                        width="10em"
+                        width="12em"
                     >
                         <Text
                             id="Text5000"

@@ -119,6 +119,15 @@ sap.ui.define([
 							oDataresult.SHIPPING_REQUEST_STATUS = status;
 							let oPickDetailsModel = new JSONModel();
 							oPickDetailsModel.setData(oData.results[0]);
+							let quantityProgress;
+							let quantityProgressValue;
+							if (oData.results[0].QUANTITY > 0) {
+								quantityProgress = oData.results[0].QUANTITY_PICKED / oData.results[0].QUANTITY;
+								quantityProgressValue = quantityProgress * 100;
+							} else {
+								quantityProgressValue = 0;
+							}
+							oPickDetailsModel.setProperty("/quantityProgress", quantityProgressValue.toFixed(2) + " %");
 
 							oView.setModel(oPickDetailsModel, "PickTaskDetail");
 						} else {
@@ -547,7 +556,7 @@ sap.ui.define([
 						});
 					});
 
-					this.onSubmitChanges(sGroupId);
+					this._onSubmitChanges(sGroupId);
 				}.bind(this)).catch((error) => {
 					that._oBusyDialog.close();
 				});
@@ -689,10 +698,21 @@ sap.ui.define([
 				let oView = this.getView();
 				let oModel = oView.getModel();
 				let aFilters = [];
+				debugger;
+				const oComponent = this.getOwnerComponent();
+				const oDetailsView = oComponent.getRouter().getView("br.com.challenge.monitor.challengemonitor.view.Details");
+				const oTable = oDetailsView.byId("itemsTable");
+				const oSelectedItem = oTable.getSelectedItem();
+				const oBindingContext = oSelectedItem.getBindingContext("Details");
+				const oItemData = oBindingContext.getObject();
 
-				aFilters.push(new Filter("DELIVERY_NR", FilterOperator.EQ, deliveryNr));
-				aFilters.push(new Filter("DELIVERY_ITEM_NR", FilterOperator.EQ, deliveryItemNr));
-				aFilters.push(new Filter("MATERIAL_NR", FilterOperator.EQ, materialNr));
+
+				// aFilters.push(new Filter("DELIVERY_NR", FilterOperator.EQ, deliveryNr));
+				// aFilters.push(new Filter("DELIVERY_ITEM_NR", FilterOperator.EQ, deliveryItemNr));
+				// aFilters.push(new Filter("MATERIAL_NR", FilterOperator.EQ, materialNr));
+				aFilters.push(new Filter("DELIVERY_NR", FilterOperator.EQ, oItemData.DELIVERY_NR));
+				aFilters.push(new Filter("DELIVERY_ITEM_NR", FilterOperator.EQ, oItemData.DELIVERY_ITEM_NR));
+				aFilters.push(new Filter("MATERIAL_NR", FilterOperator.EQ, oItemData.MATERIAL_NR));
 				let oFilter = new Filter({
 					filters: aFilters,
 					and: true
@@ -705,18 +725,93 @@ sap.ui.define([
 					success: (oData) => {
 						console.log("Data refreshed:", oData);
 						let oJSONModel = new JSONModel();
-						oJSONModel.setData(oData.results[0])
+						oJSONModel.setData(oData.results[0]);
+
 						oView.setModel(oJSONModel, "PickTaskDetail");
 
-						let oObjectPageLayout = oView.byId("ObjectPageLayout");
-						oObjectPageLayout.invalidate();
-						oObjectPageLayout.rerender();
+						const oObjectPageLayout = oView.byId("ObjectPageLayout");
+						if (oObjectPageLayout) {
+							oObjectPageLayout.invalidate();
+							oObjectPageLayout.rerender();
+						}
+
+						// Update the Details view using existing data
+						this._updateDetailsView(oData.results[0].SHIPPING_REQUEST_ID);
 					},
 					error: (oError) => {
 
 					}
 				});
 			},
+
+
+			// Update the Details view with the existing data //
+			_updateDetailsView: function (shippingRequestId) {
+				const oView = this.getView();
+				const oModel = oView.getModel();
+				const oComponent = this.getOwnerComponent();
+				const oDetailsView = oComponent.getRouter().getView("br.com.challenge.monitor.challengemonitor.view.Details");
+
+				if (!oDetailsView) {
+					console.error("Details view not found.");
+					return;
+				}
+
+				const oDetailsModel = oDetailsView.getModel("Details");
+				if (!oDetailsModel) {
+					console.warn("Details model not found. Creating a new one.");
+					this._createDetailsModel(oDetailsView);
+					return;
+				}
+
+				const aFilters = [new Filter("SHIPPING_REQUEST_ID", FilterOperator.EQ, shippingRequestId)];
+				const oFilter = new Filter({ filters: aFilters, and: true });
+
+				const sElement = "/ZRFSFBPCDS0002";
+
+				// Fetch data from the backend
+				oModel.read(sElement, {
+					filters: [oFilter],
+					success: (oDetailsData) => this._processDetailsData(oDetailsModel, oDetailsData),
+					error: (oError) => console.error("Error fetching details data:", oError),
+				});
+			},
+
+			_createDetailsModel: function (oDetailsView) {
+				const oJSONModel = new JSONModel({ results: [] });
+				oDetailsView.setModel(oJSONModel, "Details");
+				console.log("New Details model created and set.");
+			},
+
+			_processDetailsData: function (oDetailsModel, oDetailsData) {
+				const currentData = oDetailsModel.getData();
+
+				// Ensure PICKING_TASK_ID has a valid value
+				oDetailsData.results.forEach((item) => {
+					if (!item.PICKING_TASK_ID || item.PICKING_TASK_ID.trim() === "") {
+						item.PICKING_TASK_ID = "N/A";
+					}
+				});
+
+				// Sort the results by PICKING_TASK_ID
+				oDetailsData.results.sort((a, b) => {
+					const idA = a.PICKING_TASK_ID.toUpperCase(); // Handle case-insensitive sorting
+					const idB = b.PICKING_TASK_ID.toUpperCase();
+					if (idA < idB) return -1;
+					if (idA > idB) return 1;
+					return 0;
+				});
+
+				// Merge or update the model's existing data
+				currentData.results = oDetailsData.results;
+
+				// Refresh the model to update the bindings
+				oDetailsModel.refresh(true);
+
+				console.log("Details model updated and sorted by PICKING_TASK_ID:", oDetailsModel.getData());
+			},
+
+			// End of Updating the Details view with the existing data //
 
 			_functionGetNextId: function (nrRange, object) {
 				return new Promise((resolve, reject) => {
