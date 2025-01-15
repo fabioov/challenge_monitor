@@ -51,12 +51,12 @@
                                 groupName="Principal"
                             >
                                 <fb:control>
-                                    <Input
+                                    <MultiInput
                                         id="idShippingRequestItemFilter"
                                         width="100%"
                                         placeholder="{i18n>fgShippingRequestIdPlaceholder}"
                                         showValueHelp="true"
-                                        valueHelpRequest=".SearchHelp.onShippingId"
+                                        valueHelpRequest=".SearchHelp.onValueHelpRequest"
                                         tooltip="{i18n>fgShippingRequestIdTooltip}"
                                     />
                                 </fb:control>

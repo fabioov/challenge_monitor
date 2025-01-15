@@ -56,62 +56,6 @@ sap.ui.define([
 
     // Saving app state
 
-    // _saveAppState: function (viewsNr) {
-    //   const appState = this._getCurrentAppState();
-    //   const currentUrl = window.location.href;
-    //   // Extract the base URL considering 'display'
-    //   let baseUrl;
-    //   if (
-    //     currentUrl.includes("display") &&
-    //     (currentUrl.includes("?", currentUrl.indexOf("display")) || currentUrl.includes("&", currentUrl.indexOf("display")))
-    //   ) {
-    //     // Determine the position of the first `?` or `&` after "display"
-    //     const questionMarkIndex = currentUrl.indexOf("?", currentUrl.indexOf("display"));
-    //     const ampersandIndex = currentUrl.indexOf("&", currentUrl.indexOf("display"));
-
-    //     // Find the earliest occurrence of `?` or `&` after "display"
-    //     const cutoffIndex = questionMarkIndex !== -1 && ampersandIndex !== -1
-    //       ? Math.min(questionMarkIndex, ampersandIndex)
-    //       : questionMarkIndex !== -1
-    //         ? questionMarkIndex
-    //         : ampersandIndex;
-
-    //     baseUrl = cutoffIndex !== -1 ? currentUrl.substring(0, cutoffIndex) : currentUrl;
-    //   } else {
-    //     baseUrl = currentUrl;
-    //   }
-    //   let appStateModel = this.getOwnerComponent().getModel("appStateModel");
-
-    //   let newUrl;
-    //   let appStateEncoded;
-
-    //   appState.viewsNr = viewsNr;
-    //   if (this._isListClicked) {
-    //     // Handle the case where isClicked takes precedence
-    //     this._isListClicked = false; // Reset the flag
-    //     appStateEncoded = this.compressAndEncode(appState);
-    //   } else if (appState && appState.selectedItem) {
-    //     // Encode the appState object
-    //     appStateEncoded = this.compressAndEncode(appState);
-    //     // If only selectedItem exists
-    //     newUrl = `${baseUrl}&/details/ShippingRequestId=${appState.selectedItem}/?appState=${appStateEncoded}`;
-    //   } else if (appState) {
-    //     // Encode the appState object
-    //     appStateEncoded = this.compressAndEncode(appState);
-    //     // Default case, no selectedDetailKeys or selectedItem
-    //     newUrl = `${baseUrl}?appState=${appStateEncoded}`;
-    //   } else {
-    //     newUrl = baseUrl; // No appState, so keep the base URL
-    //   }
-
-    //   appStateModel.setProperty("/appState", appStateEncoded);
-
-    //   // Update the browser's URL without reloading the page
-    //   if (newUrl) {
-    //     window.history.replaceState({ path: newUrl }, "", newUrl);
-    //   }
-    // },
-
     _saveAppState: function (viewsNr) {
       const appState = this._getCurrentAppState();
       const currentUrl = window.location.href;
@@ -275,17 +219,22 @@ sap.ui.define([
       const aFilters = [];
 
       // Extract filter values
-      const shippingRequestId = this.getView().byId("idShippingRequestItemFilter").getValue();
+      // const shippingRequestId = this.getView().byId("idShippingRequestItemFilter").getValue();
       const status = this.getView().byId("statusFilter").getSelectedKeys();
       const customerId = this.getView().byId("customerIdFilter").getValue();
       const plantOrigin = this.getView().byId("plantOriginFilter").getValue();
       const createdBy = this.getView().byId("createdByFilter").getValue();
 
-      // Add filters based on values
-      if (shippingRequestId) {
-        aFilters.push(new Filter("ShippingRequestId", FilterOperator.EQ, shippingRequestId));
+      // Extract tokens from MultiInput
+      const oMultiInput = this.getView().byId("idShippingRequestItemFilter");
+      if (oMultiInput && oMultiInput.getTokens().length > 0) {
+        const aTokenFilters = oMultiInput.getTokens().map(token => {
+          return new Filter("ShippingRequestId", FilterOperator.EQ, token.getKey() || token.getText());
+        });
+        aFilters.push(new Filter({ filters: aTokenFilters, and: false })); // Combine tokens with OR
       }
 
+      // Add filters based on values
       if (status && status.length) {
         const aStatusFilters = status.map(statusKey => new Filter("Status", FilterOperator.Contains, statusKey));
         aFilters.push(new Filter({ filters: aStatusFilters, and: false }));
@@ -408,33 +357,35 @@ sap.ui.define([
     onClearFilters: function () {
       const oFilterBar = this.getView().byId("idFilterBar"); // Replace with your FilterBar's ID
       if (oFilterBar) {
-        const aFilterGroupItems = oFilterBar.getFilterGroupItems();
-
-        // Clear each filter control
-        aFilterGroupItems.forEach((oFilterGroupItem) => {
-          const oControl = oFilterGroupItem.getControl();
-          if (oControl) {
-            // Reset different control types appropriately
-            if (typeof oControl.setValue === "function") {
-              oControl.setValue(""); // Clear Input fields
-            }
-            if (typeof oControl.setSelectedKeys === "function") {
-              oControl.setSelectedKeys([]); // Clear MultiComboBox or similar controls
-            }
-            if (typeof oControl.setSelected === "function") {
-              oControl.setSelected(false); // Clear CheckBox or RadioButton controls
-            }
-          }
-        });
-
-        // Optionally trigger the search to update the results
-        this.filterTable({}, false);
-        // this._saveAppState();
-        this._updateAppState();
+          const aFilterGroupItems = oFilterBar.getFilterGroupItems();
+  
+          // Clear each filter control
+          aFilterGroupItems.forEach((oFilterGroupItem) => {
+              const oControl = oFilterGroupItem.getControl();
+              if (oControl) {
+                  // Reset different control types appropriately
+                  if (typeof oControl.setValue === "function") {
+                      oControl.setValue(""); // Clear Input fields
+                  }
+                  if (typeof oControl.setSelectedKeys === "function") {
+                      oControl.setSelectedKeys([]); // Clear MultiComboBox or similar controls
+                  }
+                  if (typeof oControl.setSelected === "function") {
+                      oControl.setSelected(false); // Clear CheckBox or RadioButton controls
+                  }
+                  if (typeof oControl.removeAllTokens === "function") {
+                      oControl.removeAllTokens(); // Clear MultiInput tokens
+                  }
+              }
+          });
+  
+          // Optionally trigger the search to update the results
+          this.filterTable({}, false);
+          this._updateAppState();
       } else {
-        console.error("FilterBar not found.");
+          console.error("FilterBar not found.");
       }
-    },
+  },
 
     onMessagesButtonPress: function (oEvent) {
       MessagePopoverHook.onMessagesPopoverOpen(oEvent);
@@ -454,8 +405,6 @@ sap.ui.define([
       PrintForms.onPrintPress(this.getView(), oContext);
     },
 
-    // _loadDefaultView: function () {
-    //   this.filterTable({});
-    // },
+
   });
 });
