@@ -16,11 +16,18 @@
 		<headerTitle>
 			<ObjectPageDynamicHeaderTitle id="_IDGenObjectPageDynamicHeaderTitle1">
 				<expandedHeading>
-					<m:Title
-						id="_IDGenTitle1"
-						text="{= ${PickTaskDetail>/PICKING_TASK_ID} ? ${PickTaskDetail>/PICKING_TASK_ID} : ${i18n>ptDhNoPickTask}}"
-						wrapping="true"
-					/>
+					<m:VBox>
+						<m:Title
+							id="_IDGenTitle1"
+							text="{i18n>pickingTask}"
+							wrapping="true"
+						/>
+						<m:Text
+							id="_IDGenSubtitle"
+							text="{= ${PickTaskDetail>/PICKING_TASK_ID} ? ${PickTaskDetail>/PICKING_TASK_ID} : ${i18n>ptDhNoPickTask}}"
+							wrapping="true"
+						/>
+					</m:VBox>
 				</expandedHeading>
 				<snappedHeading>
 					<m:FlexBox
@@ -296,7 +303,10 @@
 										text="{= ${PickTaskDetail>/PICKING_USER} ? ${PickTaskDetail>/PICKING_USER} : ${i18n>ptDhUserNotAssigned}}"
 									/>
 								</m:HBox>
-								<m:HBox id="ProgressIndicatorBox" width="100%">
+								<m:HBox
+									id="ProgressIndicatorBox"
+									width="100%"
+								>
 									<m:Text
 										text="{i18n>ptSsProgress}"
 										class="sapUiSmallMarginEnd"

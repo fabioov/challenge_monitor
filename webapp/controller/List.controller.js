@@ -6,7 +6,6 @@ sap.ui.define([
   "br/com/challenge/monitor/challengemonitor/utils/SearchHelp",
   "sap/m/MessageBox",
   "br/com/challenge/monitor/challengemonitor/utils/MessagePopover",
-  "br/com/challenge/monitor/challengemonitor/utils/PrintForms",
   "sap/ui/Device"
 ], function (
   BaseController,
@@ -15,8 +14,7 @@ sap.ui.define([
   FilterOperator,
   SearchHelp,
   MessageBox,
-  MessagePopoverHook,
-  PrintForms
+  MessagePopoverHook
 ) {
   "use strict";
 
@@ -357,52 +355,76 @@ sap.ui.define([
     onClearFilters: function () {
       const oFilterBar = this.getView().byId("idFilterBar"); // Replace with your FilterBar's ID
       if (oFilterBar) {
-          const aFilterGroupItems = oFilterBar.getFilterGroupItems();
-  
-          // Clear each filter control
-          aFilterGroupItems.forEach((oFilterGroupItem) => {
-              const oControl = oFilterGroupItem.getControl();
-              if (oControl) {
-                  // Reset different control types appropriately
-                  if (typeof oControl.setValue === "function") {
-                      oControl.setValue(""); // Clear Input fields
-                  }
-                  if (typeof oControl.setSelectedKeys === "function") {
-                      oControl.setSelectedKeys([]); // Clear MultiComboBox or similar controls
-                  }
-                  if (typeof oControl.setSelected === "function") {
-                      oControl.setSelected(false); // Clear CheckBox or RadioButton controls
-                  }
-                  if (typeof oControl.removeAllTokens === "function") {
-                      oControl.removeAllTokens(); // Clear MultiInput tokens
-                  }
-              }
-          });
-  
-          // Optionally trigger the search to update the results
-          this.filterTable({}, false);
-          this._updateAppState();
+        const aFilterGroupItems = oFilterBar.getFilterGroupItems();
+
+        // Clear each filter control
+        aFilterGroupItems.forEach((oFilterGroupItem) => {
+          const oControl = oFilterGroupItem.getControl();
+          if (oControl) {
+            // Reset different control types appropriately
+            if (typeof oControl.setValue === "function") {
+              oControl.setValue(""); // Clear Input fields
+            }
+            if (typeof oControl.setSelectedKeys === "function") {
+              oControl.setSelectedKeys([]); // Clear MultiComboBox or similar controls
+            }
+            if (typeof oControl.setSelected === "function") {
+              oControl.setSelected(false); // Clear CheckBox or RadioButton controls
+            }
+            if (typeof oControl.removeAllTokens === "function") {
+              oControl.removeAllTokens(); // Clear MultiInput tokens
+            }
+          }
+        });
+
+        // Optionally trigger the search to update the results
+        this.filterTable({}, false);
+        this._updateAppState();
       } else {
-          console.error("FilterBar not found.");
+        console.error("FilterBar not found.");
       }
-  },
+    },
 
     onMessagesButtonPress: function (oEvent) {
       MessagePopoverHook.onMessagesPopoverOpen(oEvent);
     },
 
-    onPrintForms: function () {
-      const oModel = this.getView().getModel();
-      const oTable = this.getView().byId("shippingsTable");
-      const oSelectedItem = oTable.getSelectedItem();
+    onFilterBarReset: function () {
+      debugger;
+      const oFilterBar = this.getView().byId("idFilterBar");
+      if (oFilterBar) {
+        const aFilterGroupItems = oFilterBar.getFilterGroupItems();
+        console.log("FilterGroupItems:", aFilterGroupItems);
 
-      if (!oSelectedItem) {
-        MessageBox.warning(this.getView().getModel("i18n").getResourceBundle().getText("lvSelectAtLeastOneShippingRequest"));
-        return;
+        aFilterGroupItems.forEach((oFilterGroupItem) => {
+          const sFilterName = oFilterGroupItem.getName();
+          console.log("Processing Filter:", sFilterName);
+
+          // Make all fields visible
+          if (sFilterName === "PlantOrigin") {
+            oFilterGroupItem.setVisibleInFilterBar(false);
+          } else {
+            oFilterGroupItem.setVisibleInFilterBar(true);
+          }
+
+          // Clear only the PlantOrigin field
+          if (sFilterName === "PlantOrigin") {
+            const oControl = oFilterGroupItem.getControl();
+            console.log("PlantOrigin Control:", oControl);
+            if (oControl && typeof oControl.setValue === "function") {
+              oControl.setValue(""); // Clear the value of PlantOrigin
+              console.log("Cleared PlantOrigin field");
+            }
+          }
+        });
+
+        // Trigger a change event
+        // oFilterBar.fireFilterChange();
+        this._updateAppState();
+        this.filterTable({}, false);
+      } else {
+        console.error("FilterBar not found.");
       }
-
-      const oContext = oSelectedItem.getBindingContext();
-      PrintForms.onPrintPress(this.getView(), oContext);
     },
 
 

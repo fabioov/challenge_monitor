@@ -119,6 +119,7 @@ sap.ui.define([
 							oDataresult.SHIPPING_REQUEST_STATUS = status;
 							let oPickDetailsModel = new JSONModel();
 							oPickDetailsModel.setData(oData.results[0]);
+							console.log("Picking Data", oData.results[0]);
 							let quantityProgress;
 							let quantityProgressValue;
 							if (oData.results[0].QUANTITY_PICKED > 0) {
@@ -541,7 +542,14 @@ sap.ui.define([
 								};
 								MessagePopoverHook.onSetMessage(oView, oMessageParams);
 								that._bindTable(oItem.SHIPPING_REQUEST_ID);
-								that._refreshView(oItem.DELIVERY_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR);
+								this._refreshPickingTaskView(this.getView())
+									.then((shippingRequestId) => {
+										this._updateDetailsView(shippingRequestId);
+									})
+									.catch((error) => {
+										console.error("Error:", error);
+										// Handle the error
+									});
 								that._oBusyDialog.close();
 							},
 							error: (oError) => {
@@ -596,7 +604,14 @@ sap.ui.define([
 								};
 								MessagePopoverHook.onSetMessage(oView, oMessageParams);
 								that._bindTable(oItem.SHIPPING_REQUEST_ID);
-								that._refreshView(oItem.DELIVERY_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR);
+								this._refreshPickingTaskView(this.getView())
+									.then((shippingRequestId) => {
+										this._updateDetailsView(shippingRequestId);
+									})
+									.catch((error) => {
+										console.error("Error:", error);
+										// Handle the error
+									});
 								that._oBusyDialog.close();
 							},
 							error: (oError) => {
@@ -638,7 +653,15 @@ sap.ui.define([
 								};
 								MessagePopoverHook.onSetMessage(oView, oMessageParams);
 								that._bindTable(oData.SHIPPING_REQUEST_ID);
-								that._refreshView(oData.DELIVERY_NR, oData.DELIVERY_ITEM_NR, oData.MATERIAL_NR);
+								this._refreshPickingTaskView(this.getView())
+									.then((shippingRequestId) => {
+										this._updateDetailsView(shippingRequestId);
+									})
+									.catch((error) => {
+										console.error("Error:", error);
+										// Handle the error
+									});
+
 								that._oBusyDialog.close();
 							},
 							error: (oError) => {
@@ -695,55 +718,9 @@ sap.ui.define([
 				});
 			},
 
-			_refreshView: function (deliveryNr, deliveryItemNr, materialNr) {
-				let oView = this.getView();
-				let oModel = oView.getModel();
-				let aFilters = [];
-				debugger;
-				const oComponent = this.getOwnerComponent();
-				const oDetailsView = oComponent.getRouter().getView("br.com.challenge.monitor.challengemonitor.view.Details");
-				const oTable = oDetailsView.byId("itemsTable");
-				const oSelectedItem = oTable.getSelectedItem();
-				const oBindingContext = oSelectedItem.getBindingContext("Details");
-				const oItemData = oBindingContext.getObject();
-
-				aFilters.push(new Filter("DELIVERY_NR", FilterOperator.EQ, oItemData.DELIVERY_NR));
-				aFilters.push(new Filter("DELIVERY_ITEM_NR", FilterOperator.EQ, oItemData.DELIVERY_ITEM_NR));
-				aFilters.push(new Filter("MATERIAL_NR", FilterOperator.EQ, oItemData.MATERIAL_NR));
-				let oFilter = new Filter({
-					filters: aFilters,
-					and: true
-				});
-
-				let sElement = "/ZRFSFBPCDS0002";
-				// Read data from the primary entity set (e.g., PickTaskDetail)
-				oModel.read(sElement, {
-					filters: [oFilter],
-					success: (oData) => {
-						console.log("Data refreshed:", oData);
-						let oJSONModel = new JSONModel();
-						oJSONModel.setData(oData.results[0]);
-
-						oView.setModel(oJSONModel, "PickTaskDetail");
-
-						const oObjectPageLayout = oView.byId("ObjectPageLayout");
-						if (oObjectPageLayout) {
-							oObjectPageLayout.invalidate();
-							oObjectPageLayout.rerender();
-						}
-
-						// Update the Details view using existing data
-						this._updateDetailsView(oData.results[0].SHIPPING_REQUEST_ID);
-					},
-					error: (oError) => {
-
-					}
-				});
-			},
-
-
 			// Update the Details view with the existing data //
 			_updateDetailsView: function (shippingRequestId) {
+				debugger;
 				const oView = this.getView();
 				const oModel = oView.getModel();
 				const oComponent = this.getOwnerComponent();

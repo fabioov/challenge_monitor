@@ -15,15 +15,23 @@
 		<headerTitle>
 			<ObjectPageHeader
 				id="ObjectPageHeader"
-				objectTitle="{Header>/ShippingRequestId}"
+				objectTitle="{i18n>appTitle}"
+				objectSubtitle="{Header>/ShippingRequestId}"
 			>
 				<actions>
 					<ObjectPageHeaderActionButton
+						id="printActionButton"
+						icon="sap-icon://print"
+						text="{i18n>btnPrint}"
+						tooltip="{i18n>btnPrint}"
+						press="onPrintForms"
+					/>
+					<ObjectPageHeaderActionButton
 						id="_IDGenObjectPageHeaderActionButton3"
 						icon="sap-icon://decline"
-						text="close"
+						text="{i18n>btnClose}"
 						importance="Medium"
-						tooltip="close"
+						tooltip="{i18n>btnClose}"
 						press="onCloseDetailView"
 					/>
 				</actions>
@@ -392,14 +400,6 @@
 					text="{i18n>btnCancelShipRequest}"
 					press="onCancelShippingRequest"
 					type="Reject"
-				/>
-				<m:Button
-					id="_IDGenButto3454353"
-					icon="sap-icon://print"
-					text="{i18n>btnPrint}"
-					press="onPrintForms"
-					type="Transparent"
-					class="detailPrintButton"
 				/>
 			</m:OverflowToolbar>
 		</footer>

@@ -260,7 +260,7 @@ sap.ui.define([
           controller: this,
         }).then(function (oDialog) {
           var oFilterBar = oDialog.getFilterBar();
-          var oShippingRequestId, oStatusDescription;
+          var oShippingRequestId, oStatusDescription, oStatus;
 
           this._oValueHelpDialog = oDialog;
 
@@ -272,20 +272,20 @@ sap.ui.define([
             }.bind(this)
           });
 
-          // Set Range Key Fields
+          // // Set Range Key Fields
           this._oValueHelpDialog.setRangeKeyFields([
             {
-              // label: "Shipping Request ID",
+              label: "Shipping Request ID",
               key: "ShippingRequestId",
               type: "string",
               visibleInFilterBar: true
             },
-            {
-              label: "Status Description",
-              key: "StatusDescription",
-              type: "string",
-              visibleInFilterBar: true
-            }
+          //   {
+          //     label: "Status",
+          //     key: "Status",
+          //     type: "string",
+          //     visibleInFilterBar: true
+          //   }
           ]);
 
           // Configure the FilterBar
@@ -310,6 +310,13 @@ sap.ui.define([
               oShippingRequestId.data({ fieldName: "ShippingRequestId" });
               oTable.addColumn(oShippingRequestId);
 
+              oStatus = new UIColumn({
+                label: new Label({ text: "Status" }),
+                template: new Text({ text: "{Status}" })
+              });
+              oStatus.data({ fieldName: "Status" });
+              oTable.addColumn(oStatus);
+
               oStatusDescription = new UIColumn({
                 label: new Label({ text: "Status Description" }),
                 template: new Text({ text: "{StatusDescription}" })
@@ -329,13 +336,15 @@ sap.ui.define([
 
             // For Mobile devices (sap.m.Table)
             if (oTable.bindItems) {
-              oTable.addColumn(new MColumn({ header: new Label({ text: "Shipping Request ID" }) }));
+              oTable.addColumn(new MColumn({ header: new Label({ text: "Shipping RequestId" }) }));
+              oTable.addColumn(new MColumn({ header: new Label({ text: "Status" }) }));
               oTable.addColumn(new MColumn({ header: new Label({ text: "Status Description" }) }));
               oTable.bindItems({
                 path: "/ZRFSFBP_SH_SHIPPING_ID",
                 template: new ColumnListItem({
                   cells: [
                     new Text({ text: "{ShippingRequestId}" }),
+                    new Text({ text: "{Status}" }),
                     new Text({ text: "{StatusDescription}" })
                   ]
                 }),
@@ -398,11 +407,14 @@ sap.ui.define([
       var sSearchQuery = this._oBasicSearchField.getValue(); // Basic Search Query
       var aSelectionSet = oEvent.getParameter("selectionSet"); // Filters in FilterBar
 
+      // Reduce the selection set to create filters for controls with values
       var aFilters = aSelectionSet.reduce(function (aResult, oControl) {
         if (oControl.getValue()) {
-          // Create filters for controls with values
+          var sFilterPath = oControl.getName(); // 'ShippingRequestId' or 'Status'
+
+          // For other fields, use the visible value
           aResult.push(new Filter({
-            path: oControl.getName(),
+            path: sFilterPath,
             operator: FilterOperator.Contains,
             value1: oControl.getValue()
           }));
@@ -410,22 +422,17 @@ sap.ui.define([
         return aResult;
       }, []);
 
-      // Add additional filters for basic search query
-      aFilters.push(new Filter({
-        filters: [
-          new Filter({ path: "ShippingRequestId", operator: FilterOperator.Contains, value1: sSearchQuery }),
-          new Filter({ path: "StatusDescription", operator: FilterOperator.Contains, value1: sSearchQuery })
-        ],
-        and: false
-      }));
-
-      // this._filterTableWhitespace(new Filter({
-      //   filters: aFilters,
-      //   and: true
-      // }));
-
-
-
+      // Add additional filters for the basic search query
+      if (sSearchQuery) {
+        aFilters.push(new Filter({
+          filters: [
+            new Filter({ path: "ShippingRequestId", operator: FilterOperator.Contains, value1: sSearchQuery }),
+            new Filter({ path: "StatusDescription", operator: FilterOperator.Contains, value1: sSearchQuery }),
+            new Filter({ path: "Status", operator: FilterOperator.Contains, value1: sSearchQuery })
+          ],
+          and: false
+        }));
+      }
 
 
       // try something different
@@ -458,6 +465,13 @@ sap.ui.define([
             oBinding.filter(aFilters);
           }
         }
+
+      // Log the table items
+      if (oTable.getItems) {
+        console.log(oTable.getItems());
+      } else if (oTable.getRows) {
+        console.log(oTable.getRows());
+      }
 
         // Update the dialog
         oValueHelpDialog.update();

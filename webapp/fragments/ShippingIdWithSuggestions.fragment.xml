@@ -19,7 +19,7 @@
                 id="_IDGenFilterBar1"
                 advancedMode="true"
                 search=".SearchHelp.onFilterBarWithSuggestionsSearch"
-                isRunningInValueHelpDialog="true"
+                isRunningInValueHelpDialog="true"               
             >
                 <fb:filterGroupItems>
                     <fb:FilterGroupItem
@@ -66,18 +66,19 @@
                                 suggestionItems="{
                                     path: '/ZRFSFBP_SH_SHIPPING_ID',
                                     sorter: {
-                                        path: 'StatusDescription'
+                                        path: 'Status'   
                                     }
                                 }"
                             >
                                 <core:Item
                                     id="_IDGenItem1"
                                     key="{Status}"
-                                    text="{StatusDescription}"
+                                    text="{Status}"
                                 />
                             </m:Input>
                         </fb:control>
                     </fb:FilterGroupItem>
+                    
                 </fb:filterGroupItems>
             </fb:FilterBar>
         </filterBar>

@@ -488,9 +488,8 @@ sap.ui.define([
                                         };
                                         MessagePopoverHook.onSetMessage(that.getView(), oParams);
                                         MessageBox.success(oParams.title);
-
-                                        that._refreshHeaderAndDetails();
                                         that._oBusyDialog.close();
+                                        that._refreshHeaderAndDetails();
                                     }
                                 },
                                 error: function (error) {
@@ -520,30 +519,87 @@ sap.ui.define([
             );
         },
 
+        // Testing it
+        _saveStateOnChangeStatus: function (appState) {
+            const appStateDecompressed = this._prepareDecompressedState(appState);
+            const appStateCompressed = this.compressAndEncode(appStateDecompressed);
+
+            const newUrl = this._generateNewUrl(appStateDecompressed.selectedItem, appStateCompressed);
+            this._updateHistoryAndModel(newUrl, appStateCompressed);
+        },
+
+        _prepareDecompressedState: function (appState) {
+            const appStateDecompressed = this.decompressAndDecode(appState);
+            appStateDecompressed.selectedDetailKeys = {};
+            appStateDecompressed.viewsNr = 2;
+            return appStateDecompressed;
+        },
+
+        _generateNewUrl: function (shippingRequestId, appStateCompressed) {
+            const baseUrl = this._baseUrl();
+            return `${baseUrl}&/details/ShippingRequestId=${shippingRequestId}/?appState=${appStateCompressed}`;
+        },
+
+        _updateHistoryAndModel: function (newUrl, appStateCompressed) {
+            // Update browser history
+            window.history.replaceState({ path: newUrl }, "", newUrl);
+
+            // Update appStateModel
+            const appStateModel = this.getOwnerComponent().getModel("appStateModel");
+            appStateModel.setProperty("/appState", appStateCompressed);
+            appStateModel.setProperty("/views", 2);
+        },
+
+        // End of testing //
+
         _refreshHeaderAndDetails: function () {
             // Get the current ShippingRequestId from the Header model
             var oHeaderModel = this.getView().getModel("Header");
             var shippingRequestId = "0000000" + oHeaderModel.getData().ShippingRequestId;
 
+            const currentAppState = this.getAppStateFromUrl();
+            this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
+            this._saveStateOnChangeStatus(currentAppState);
+
+            debugger;
+
+            const oComponent = this.getOwnerComponent();
+            const oDetailsView = oComponent.getRouter().getView("br.com.challenge.monitor.challengemonitor.view.Details");
+            if (!oDetailsView) {
+                console.error("Details view not found.");
+                return;
+            }
+
             // Define the filter
             var aFilters = [new Filter("SHIPPING_REQUEST_ID", FilterOperator.EQ, shippingRequestId)];
+            var oFilter = new Filter({ filters: aFilters, and: true });
 
             // OData Model
-            var oView = this.getView();
-            var oModel = oView.getModel();
+            var oModel = this.getView().getModel();
 
             // Refresh items (ZRFSFBPCDS0002)
             var sElement = "/ZRFSFBPCDS0002";
             oModel.read(sElement, {
-                filters: aFilters,
+                filters: [oFilter],
                 success: function (oData) {
                     if (oData.results.length > 0) {
-                        var oItemsModel = new JSONModel(oData);
-                        oView.setModel(oItemsModel, "Details");
+                        var oDetailsModel = oDetailsView.getModel("Details");
+                        if (oDetailsModel) {
+                            oData.results.forEach((item) => {
+                                if (!item.PICKING_TASK_ID || item.PICKING_TASK_ID.trim() === "") {
+                                    item.PICKING_TASK_ID = "N/A";
+                                }
+                            });
+                            oDetailsModel = new JSONModel({});
+                            oDetailsView.setModel(oDetailsModel, "Details");
+                        }
+
+                        oDetailsModel.setData(oData);
+                        oDetailsModel.refresh(true); // Ensure UI updates
                     }
                 },
                 error: function (oError) {
-                    // Handle error
+                    console.error("Error refreshing Details data:", oError);
                 }
             });
 
@@ -551,13 +607,25 @@ sap.ui.define([
             var sPath = "/ZRFSFBPCDS0001('" + shippingRequestId + "')";
             oModel.read(sPath, {
                 success: function (oData) {
-                    var oJSONModel = new JSONModel(oData);
-                    oView.setModel(oJSONModel, "Header");
+                    var oHeaderModel = oDetailsView.getModel("Header");
+                    if (!oHeaderModel) {
+                        oHeaderModel = new JSONModel({});
+                        oDetailsView.setModel(oHeaderModel, "Header");
+                    }
+
+                    oHeaderModel.setData(oData);
+                    oHeaderModel.refresh(true); // Ensure UI updates
                 },
                 error: function (oError) {
-                    // Handle error
+                    console.error("Error refreshing Header data:", oError);
                 }
             });
-        }
+        },
+
+        onPrintForms: function () {
+            const oModel = this.getView().getModel("Details");
+            this.onPrintPress(this.getView(), oModel.getData().results[0].SHIPPING_REQUEST_ID);
+        },
+
     });
 });
