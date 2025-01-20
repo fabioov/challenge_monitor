@@ -27,6 +27,7 @@ sap.ui.define([
         Formatter: formatter,
 
         onInit: function () {
+
             this._appStateModel = this.getOwnerComponent().getModel("appStateModel");
             // Attach route pattern matched event
             this.getOwnerComponent().getRouter().getRoute("Details")
@@ -137,8 +138,6 @@ sap.ui.define([
         },
 
         _onBindingDetails: function (oEvent) {
-            //TODO: Verify that we only need to retrieve data from the appStateModel and not from the URL
-
             let shippingRequestId = "0000000" + oEvent.getParameter("arguments").SHIPPING_REQUEST_ID;
 
             // Get the view and the OData model
@@ -519,7 +518,6 @@ sap.ui.define([
             );
         },
 
-        // Testing it
         _saveStateOnChangeStatus: function (appState) {
             const appStateDecompressed = this._prepareDecompressedState(appState);
             const appStateCompressed = this.compressAndEncode(appStateDecompressed);
@@ -549,8 +547,6 @@ sap.ui.define([
             appStateModel.setProperty("/appState", appStateCompressed);
             appStateModel.setProperty("/views", 2);
         },
-
-        // End of testing //
 
         _refreshHeaderAndDetails: function () {
             // Get the current ShippingRequestId from the Header model

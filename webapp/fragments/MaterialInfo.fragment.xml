@@ -1,0 +1,306 @@
+<core:FragmentDefinition
+    id="_IDGenFragmentDefinition"
+    xmlns:m="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns="sap.uxap"
+>
+    <m:Dialog
+        id="MaterialInfoDialog"
+        title="{i18n>miMaterialInfo}"
+        stretch="{device>/system/phone}"
+        class="sapUiResponsivePadding customDialog"
+        resizable="true"
+        draggable="true"
+        verticalScrolling="false"
+    >
+        <ObjectPageLayout
+            id="ObjectPageLayoutMatInfo"
+            enableLazyLoading="true"
+            showTitleInHeaderContent="false"
+            upperCaseAnchorBar="false"
+            showAnchorBar="false"
+
+        >
+            <!-- Header Section -->
+            <headerTitle>
+                <ObjectPageDynamicHeaderTitle id="headerTitle">
+                    <expandedHeading>
+                        <m:VBox id="_IDGenVBox">
+                            <m:Title
+                                id="headerTitleExpanded"
+                                text="{MaterialInfo>/Product}"
+                                wrapping="true"
+                            />
+                            <m:Text
+                                id="headerSubtitle"
+                                text="{= ${MaterialInfo>/Maktx} ? ${MaterialInfo>/Maktx} : ${i18n>miNoDescription}}"
+                                wrapping="true"
+                            />
+                        </m:VBox>
+                    </expandedHeading>
+                    <snappedHeading>
+                        <m:FlexBox
+                            id="headerSnapped"
+                            fitContainer="true"
+                            alignItems="Center"
+                        >
+                            <core:Icon
+                                id="headerIcon"
+                                src="sap-icon://product"
+                                class="sapUiTinyMarginEnd"
+                                size="2em"
+                            />
+                            <m:Title
+                                id="snappedTitle"
+                                text="{MaterialInfo>/Product}"
+                            />
+                        </m:FlexBox>
+                    </snappedHeading>
+                    <actions>
+                        <!-- <ObjectPageHeaderActionButton
+                            id="ActionButtonRefresh"
+                            icon="sap-icon://refresh"
+                            text="{i18n>refresh}"
+                            press="onRefresh"
+                        />
+                        <ObjectPageHeaderActionButton
+                            id="ActionButtonClose"
+                            icon="sap-icon://decline"
+                            text="{i18n>close}"
+                            press="onClose"
+                        /> -->
+                    </actions>
+                </ObjectPageDynamicHeaderTitle>
+            </headerTitle>
+            <!-- Header Content -->
+            <headerContent>
+                <m:FlexBox
+                    id="headerContent"
+                    wrap="Wrap"
+                    direction="Column"
+                >
+                    <m:HBox id="_IDGenHBox">
+                        <m:Text
+                            id="_IDGenText"
+                            text="{i18n>miCreatedBy}"
+                            class="sapUiSmallMarginEnd"
+                        />
+                        <m:Text
+                            id="_IDGenText4"
+                            text="{MaterialInfo>/CreatedBy}"
+                        />
+                    </m:HBox>
+                    <m:HBox id="_IDGenHBox1">
+                        <m:Text
+                            id="_IDGenText5"
+                            text="{i18n>miCreatedAt}"
+                            class="sapUiSmallMarginEnd"
+                        />
+                        <m:Text
+                            id="_IDGenText6"
+                            text="{
+                                path: 'MaterialInfo>/CreatedAt',
+                                formatter: '.Formatter.dateFormat'
+                            }"
+
+                        />
+                    </m:HBox>
+                    <m:HBox id="_IDGenHBox2">
+                        <m:Text
+                            id="_IDGenText7"
+                            text="{i18n>miLastModifiedBy}"
+                            class="sapUiSmallMarginEnd"
+                        />
+                        <m:Text
+                            id="_IDGenText8"
+                            text="{MaterialInfo>/LastModifiedBy}"
+                        />
+                    </m:HBox>
+                     <m:HBox id="_IDGenHBox2092">
+                        <m:Text
+                            id="_IDGenText7019202"
+                            text="{i18n>miLastModifiedAt}"
+                            class="sapUiSmallMarginEnd"
+                        />
+                        <m:Text
+                            id="_IDGenText803948143"
+                             text="{
+                                path: 'MaterialInfo>/LastModified',
+                                formatter: '.Formatter.dateFormat'
+                            }"
+                        />
+                    </m:HBox>
+                </m:FlexBox>
+            </headerContent>
+            <!-- Sections -->
+            <sections>
+                <!-- General Information Section -->
+                <ObjectPageSection
+                    id="_IDGenObjectPageSection"
+                    title="{i18n>miGeneralInfo}"
+                >
+                    <subSections>
+                        <ObjectPageSubSection id="_IDGenObjectPageSubSection1">
+                            <blocks>
+                                <m:FlexBox
+                                    id="_IDGenFlexBox"
+                                    wrap="Wrap"
+                                    direction="Column"
+                                >
+                                    <m:HBox id="_IDGenHBox3">
+                                        <m:Text
+                                            id="_IDGenText10"
+                                            text="{i18n>miProductType}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:Text
+                                            id="_IDGenText11"
+                                            text="{MaterialInfo>/ProductType}"
+                                        />
+                                    </m:HBox>
+                                    <m:HBox id="_IDGenHBox4">
+                                        <m:Text
+                                            id="_IDGenText12"
+                                            text="{i18n>miMaterialDescription}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:Text
+                                            id="_IDGenText13"
+                                            text="{MaterialInfo>/Maktx}"
+                                        />
+                                    </m:HBox>
+                                    <m:HBox id="_IDGenHBox5">
+                                        <m:Text
+                                            id="_IDGenText14"
+                                            text="{i18n>miLanguage}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:Text
+                                            id="_IDGenText15"
+                                            text="{MaterialInfo>/Spras}"
+                                        />
+                                    </m:HBox>
+                                    <m:HBox id="_IDGenHBox6">
+                                        <m:Text
+                                            id="_IDGenText16"
+                                            text="{i18n>miUOM}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:Text
+                                            id="_IDGenText17"
+                                            text="{MaterialInfo>/UOM}"
+                                        />
+                                    </m:HBox>
+                                    <m:HBox id="_IDGenHBox7">
+                                        <m:Text
+                                            id="_IDGenText18"
+                                            text="{i18n>miWeightUnit}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:Text
+                                            id="_IDGenText19"
+                                            text="{MaterialInfo>/WeightUnit}"
+                                        />
+                                    </m:HBox>
+                                    <m:HBox id="_IDGenHBox8">
+                                        <m:Text
+                                            id="_IDGenText20"
+                                            text="{i18n>miNetWeight}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:ObjectNumber
+                                            id="_IDGenObjectNumber"
+                                            number="{MaterialInfo>/NetWeight}"
+                                            unit="{MaterialInfo>/WeightUnit}"
+                                        />
+                                    </m:HBox>
+                                    <m:HBox id="_IDGenHBox9">
+                                        <m:Text
+                                            id="_IDGenText21"
+                                            text="{i18n>miGrossWeight}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:ObjectNumber
+                                            id="_IDGenObjectNumber2"
+                                            number="{MaterialInfo>/Brgew}"
+                                            unit="{MaterialInfo>/WeightUnit}"
+                                        />
+                                    </m:HBox>
+                                </m:FlexBox>
+                            </blocks>
+                        </ObjectPageSubSection>
+                    </subSections>
+                </ObjectPageSection>
+                <!-- Business Information Section -->
+                <ObjectPageSection
+                    id="_IDGenObjectPageSection1"
+                    title="{i18n>miBusinessInfo}"
+                >
+                    <subSections>
+                        <ObjectPageSubSection id="_IDGenObjectPageSubSection2">
+                            <blocks>
+                                <m:FlexBox
+                                    id="_IDGenFlexBox3"
+                                    wrap="Wrap"
+                                    direction="Column"
+                                >
+                                    <m:HBox id="_IDGenHBox10">
+                                        <m:Text
+                                            id="_IDGenText23"
+                                            text="{i18n>miIndustrialSector}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:Text
+                                            id="_IDGenText24"
+                                            text="{MaterialInfo>/IndustrialSector}"
+                                        />
+                                    </m:HBox>
+                                    <m:HBox id="_IDGenHBox11">
+                                        <m:Text
+                                            id="_IDGenText25"
+                                            text="{i18n>miMerchandiseGroup}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:Text
+                                            id="_IDGenText26"
+                                            text="{MaterialInfo>/MerchGroup}"
+                                        />
+                                    </m:HBox>
+                                    <m:HBox id="_IDGenHBox12">
+                                        <m:Text
+                                            id="_IDGenText27"
+                                            text="{i18n>miProductUUID}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:Text
+                                            id="_IDGenText28"
+                                            text="{MaterialInfo>/ProductUUID}"
+                                        />
+                                    </m:HBox>
+                                    <m:HBox id="_IDGenHBox13">
+                                        <m:Text
+                                            id="_IDGenText29"
+                                            text="{i18n>miProductSupplyUUID}"
+                                            class="sapUiSmallMarginEnd"
+                                        />
+                                        <m:Text
+                                            id="_IDGenText30"
+                                            text="{MaterialInfo>/ProdSupChnMgmtUUID22}"
+                                        />
+                                    </m:HBox>
+                                </m:FlexBox>
+                            </blocks>
+                        </ObjectPageSubSection>
+                    </subSections>
+                </ObjectPageSection>
+            </sections>
+        </ObjectPageLayout>
+         <m:endButton>
+            <m:Button
+                id="IdCloseButton100"
+                text="{i18n>ptlBtnClose}"
+                press=".onCloseMaterialInfoDialog"
+            />
+        </m:endButton>
+    </m:Dialog>
+</core:FragmentDefinition>

@@ -7,6 +7,7 @@ sap.ui.define([
     var Formatter = {
 
         dateFormat: function (value) {
+            debugger;
             var oConfiguration = sap.ui.getCore().getConfiguration();
             var oLocale = oConfiguration.getFormatLocale();
             var pattern = "";
@@ -246,6 +247,21 @@ sap.ui.define([
                 return 'Emphasized';
             }
         },
+
+        suppressLeadingZeros: function (sValue) {
+            if (sValue) {
+                return sValue.replace(/^0+/, ""); // Remove leading zeros
+            }
+            return sValue; // Return original value if empty or undefined
+        },
+
+        combineCustomerInfo: function (sCustomerId, sCustomerName) {
+            // Suppress leading zeros for CustomerId and combine with CustomerName
+            const formattedCustomerId = sCustomerId ? sCustomerId.replace(/^0+/, "") : "";
+            return formattedCustomerId && sCustomerName
+                ? `${formattedCustomerId} - ${sCustomerName}`
+                : formattedCustomerId || sCustomerName || "";
+        }
 
     }
 

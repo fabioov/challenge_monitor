@@ -125,7 +125,10 @@
 					/>
 					<m:Text
 						id="idText9000"
-						text="{PickTaskDetail>/DELIVERY_NR}"
+						text="{
+							path: 'PickTaskDetail>/DELIVERY_NR',
+							formatter: '.Formatter.suppressLeadingZeros'
+						}"
 						class="sapUiSmallMarginEnd"
 					/>
 				</m:HBox>
@@ -138,7 +141,10 @@
 					/>
 					<m:Text
 						id="idText90002"
-						text="{PickTaskDetail>/DELIVERY_ITEM_NR}"
+						text="{
+							path: 'PickTaskDetail>/DELIVERY_ITEM_NR',
+							formatter: '.Formatter.suppressLeadingZeros'
+						}"
 					/>
 				</m:HBox>
 				<!-- Third Row: Material -->
@@ -194,6 +200,7 @@
 									<m:Link
 										id="idText90006"
 										text="{PickTaskDetail>/MATERIAL_NR}"
+										press="getMaterialInfo"
 									/>
 								</m:HBox>
 								<m:HBox
@@ -289,7 +296,7 @@
 										id="_IDGenObjectNumber1890"
 										active="true"
 										number="{PickTaskDetail>/QUANTITY_PICKED}"
-										unit="{PickTaskDetail>/TASK_QUANTITY_UM}"
+										unit="{PickTaskDetail>/QUANTITY_UM}"
 									/>
 								</m:HBox>
 								<m:HBox id="HorizontalLayout36890123555">

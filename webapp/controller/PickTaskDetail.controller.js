@@ -228,7 +228,6 @@ sap.ui.define([
 				oModel.read(sPath, {
 					filters: aFilters,
 					success: function (oData) {
-						console.log("Data History Read:", oData);
 						oData.results.sort((a, b) => b.PickingTaskVersion - a.PickingTaskVersion);
 						let latestVersion = oData.results.length ? oData.results[0].PickingTaskVersion : null;
 						oData.LatestVersion = latestVersion;
@@ -283,14 +282,14 @@ sap.ui.define([
 				shippingRequestId = shippingRequestId.padStart(10, '0');
 
 				let aFilters = [
-					new sap.ui.model.Filter("SHIPPING_REQUEST_ID", sap.ui.model.FilterOperator.EQ, shippingRequestId)
+					new Filter("SHIPPING_REQUEST_ID", FilterOperator.EQ, shippingRequestId)
 				];
 
 				// Read data from the entity set asynchronously
 				this._readPickingTaskData(oModel, aFilters)
 					.then(function (oData) {
 						console.log("Data Items Read:", oData);
-						let oJSONModel = new sap.ui.model.json.JSONModel(oData);
+						let oJSONModel = new JSONModel(oData);
 						oView.setModel(oJSONModel, "PickingTaskList");
 
 						// Open the dialog after data is loaded
@@ -322,7 +321,7 @@ sap.ui.define([
 			_openPickingTaskListDialog: function () {
 				let oView = this.getView();
 				if (!this._oPickingTaskListDialog) {
-					sap.ui.core.Fragment.load({
+					Fragment.load({
 						id: oView.getId(),
 						name: "br.com.challenge.monitor.challengemonitor.fragments.PickingTaskList",
 						controller: this
@@ -699,7 +698,7 @@ sap.ui.define([
 				let oTable = oView.byId("pickTaskTableDialog");
 				let aFilters = [];
 				shippingRequestId = shippingRequestId.padStart(10, '0');
-				aFilters.push(new sap.ui.model.Filter("SHIPPING_REQUEST_ID", sap.ui.model.FilterOperator.EQ, shippingRequestId));
+				aFilters.push(new Filter("SHIPPING_REQUEST_ID", FilterOperator.EQ, shippingRequestId));
 
 				// Read data from the second entity set (ZRFSFBPCDS0002)
 				let sPath = "/ZRFSFBPCDS0002";
@@ -707,7 +706,7 @@ sap.ui.define([
 					filters: aFilters,
 					success: (oData) => {
 						console.log("Data Items Read:", oData);
-						let oJSONModel = new sap.ui.model.json.JSONModel(oData);
+						let oJSONModel = new JSONModel(oData);
 						oView.setModel(oJSONModel, "PickingTaskList");
 						let oBinding = oTable.getBinding("items");
 						oBinding.refresh();
@@ -806,7 +805,62 @@ sap.ui.define([
 						}
 					});
 				});
-			}
+			},
+			getMaterialInfo: function (product) {
+				debugger;
+				var oView = this.getView();
+				var oModel = oView.getModel();
+				var productId = product.oSource.getText();
+
+				var sElement = `/ZRFSCDS_MATERIAL_INFO('${productId}')`;
+
+				oModel.read(sElement, {
+					success: function (oData) {
+						delete oData.__metadata;
+						console.log("Material Information: ", oData);
+
+						// Create a new model for Material Info and set it to the view
+						var oMaterialInfoModel = new JSONModel();
+						oMaterialInfoModel.setData(oData);
+						oView.setModel(oMaterialInfoModel, "MaterialInfo");
+
+						// Correctly bind 'this' for controller context
+						this._openMaterialInfoDialog();
+					}.bind(this), // Bind the controller context here
+					error: function (oError) {
+						console.error("Error refreshing Details data:", oError);
+					}
+				});
+			},
+
+			_openMaterialInfoDialog: function () {
+				var oView = this.getView();
+
+				// Check if the dialog already exists
+				if (!this._oMaterialInfoDialog) {
+					Fragment.load({
+						id: oView.getId(), // Unique ID
+						name: "br.com.challenge.monitor.challengemonitor.fragments.MaterialInfo", // Fragment path
+						controller: this // Controller reference
+					}).then(function (oDialog) {
+						this._oMaterialInfoDialog = oDialog;
+
+						// Ensure the dialog is properly added as a dependent of the view
+						oView.addDependent(this._oMaterialInfoDialog);
+
+						// Open the dialog
+						this._oMaterialInfoDialog.open();
+					}.bind(this));
+				} else {
+					// Open the dialog if it already exists
+					this._oMaterialInfoDialog.open();
+				}
+			},
+
+			onCloseMaterialInfoDialog: function () {
+				// Close the dialog
+				this._oMaterialInfoDialog.close();
+			},
 
 		});
 });

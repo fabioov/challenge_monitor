@@ -355,11 +355,17 @@
 											/>
 											<m:Text
 												id="Text0"
-												text="{Details>DELIVERY_NR}"
+												text="{
+													path: 'Details>DELIVERY_NR',
+													formatter: '.Formatter.suppressLeadingZeros'
+												}"
 											/>
 											<m:Text
 												id="Text1"
-												text="{Details>DELIVERY_ITEM_NR}"
+												text="{
+													path: 'Details>DELIVERY_ITEM_NR',
+													formatter: '.Formatter.suppressLeadingZeros'
+												}"
 											/>
 											<m:Text
 												id="Text2"

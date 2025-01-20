@@ -168,17 +168,16 @@
                                 id="shippingsTable"
                                 noDataText="{i18n>noDataText}"
                                 items="{
-                                path: '/ZRFSFBPCDS0001',
-                                sorter: {
-                                path: 'Status',
-                                descending: false
+                                    path: '/ZRFSFBPCDS0001',
+                                    sorter: {
+                                        path: 'Status',
+                                        descending: false
                                     }
                                 }"
                                 showOverlay="false"
                                 mode="SingleSelectMaster"
                                 selectionChange="onSelectedItem"
                                 alternateRowColors="true"
-                                
                             >
                                 <items>
                                     <ColumnListItem
@@ -212,7 +211,14 @@
                                             />
                                             <Text
                                                 id="idText2"
-                                                text="{CustomerId} - {CustomerName}"
+                                                text="{
+                                                    parts: [{
+                                                        path: 'CustomerId'
+                                                    }, {
+                                                        path: 'CustomerName'
+                                                    }],
+                                                    formatter: '.Formatter.combineCustomerInfo'
+                                                }"
                                             />
                                             <Text
                                                 id="idText222"
@@ -342,7 +348,6 @@
                         ariaHasPopup="Dialog"
                         class="messageButton"
                     />
-
                 </semantic:footerCustomActions>
             </semantic:SemanticPage>
         </content>

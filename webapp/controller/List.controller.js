@@ -194,71 +194,136 @@ sap.ui.define([
       };
     },
 
-    // Modular functions for specific tasks
     _applyFilters: function (filters, isRestoring) {
       const { shippingRequestId, status, customerId, plantOrigin, createdBy } = filters;
-      this.getView().byId("idShippingRequestItemFilter").setValue(shippingRequestId || "");
-      this.getView().byId("statusFilter").setSelectedKeys(status || []);
-      this.getView().byId("customerIdFilter").setValue(customerId || "");
-      this.getView().byId("plantOriginFilter").setValue(plantOrigin || "");
-      this.getView().byId("createdByFilter").setValue(createdBy || "");
-      this.filterTable(filters, isRestoring);
+
+      // Handle MultiInput tokens
+      const oMultiInput = this.getView().byId("idShippingRequestItemFilter");
+      if (oMultiInput) {
+        oMultiInput.removeAllTokens(); // Clear existing tokens
+
+        if (shippingRequestId && Array.isArray(shippingRequestId)) {
+          shippingRequestId.forEach(filter => {
+            if (filter && filter.text && filter.data) {
+              try {
+                // Create a token
+                const token = new sap.m.Token({
+                  key: filter.key || filter.data.row.ShippingRequestId,
+                  text: filter.text || `${filter.data.row.ShippingRequestId} (${filter.data.row.Status})`
+                });
+
+                // Attach the original data to the token
+                token.data(filter.data); // Save the data as is
+                oMultiInput.addToken(token); // Add token to MultiInput
+              } catch (error) {
+                console.error("Error creating token:", error, filter);
+              }
+            } else {
+              console.warn("Invalid filter data:", filter);
+            }
+          });
+        }
+      }
+
+      // Apply other filters
+      try {
+        this.getView().byId("statusFilter").setSelectedKeys(status || []);
+        this.getView().byId("customerIdFilter").setValue(customerId || "");
+        this.getView().byId("plantOriginFilter").setValue(plantOrigin || "");
+        this.getView().byId("createdByFilter").setValue(createdBy || "");
+      } catch (error) {
+        console.error("Error applying filters to inputs:", error);
+      }
+
+      // Apply filters to the table
+      try {
+        this.filterTable(filters, isRestoring);
+      } catch (error) {
+        console.error("Error applying filters to the table:", error);
+      }
     },
 
+    //-------FILTER TABLE---------//
     filterTable: function (filters, isRestoring) {
       const oTable = this.getView().byId("shippingsTable");
       const oBinding = oTable.getBinding("items");
-
+    
       if (!oBinding) {
         console.warn("No binding found for table items. Ensure the table has a valid binding context.");
         return;
       }
-
+    
       const aFilters = [];
-
-      // Extract filter values
-      // const shippingRequestId = this.getView().byId("idShippingRequestItemFilter").getValue();
-      const status = this.getView().byId("statusFilter").getSelectedKeys();
-      const customerId = this.getView().byId("customerIdFilter").getValue();
-      const plantOrigin = this.getView().byId("plantOriginFilter").getValue();
-      const createdBy = this.getView().byId("createdByFilter").getValue();
-
-      // Extract tokens from MultiInput
-      const oMultiInput = this.getView().byId("idShippingRequestItemFilter");
-      if (oMultiInput && oMultiInput.getTokens().length > 0) {
-        const aTokenFilters = oMultiInput.getTokens().map(token => {
-          return new Filter("ShippingRequestId", FilterOperator.EQ, token.getKey() || token.getText());
-        });
-        aFilters.push(new Filter({ filters: aTokenFilters, and: false })); // Combine tokens with OR
-      }
-
-      // Add filters based on values
-      if (status && status.length) {
-        const aStatusFilters = status.map(statusKey => new Filter("Status", FilterOperator.Contains, statusKey));
-        aFilters.push(new Filter({ filters: aStatusFilters, and: false }));
-      }
-
-      if (customerId) {
-        aFilters.push(new Filter("CustomerId", FilterOperator.Contains, customerId));
-      }
-
-      if (plantOrigin) {
-        aFilters.push(new Filter("PlantOrigin", FilterOperator.Contains, plantOrigin));
-      }
-
-      if (createdBy) {
-        aFilters.push(new Filter("CreatedBy", FilterOperator.Contains, createdBy));
-      }
-
-      // Apply the filters to the binding
-      oBinding.filter(aFilters);
-
-      // Save the application state after applying filters
+    
+      // Extract and add filters for the table
+      this._addTokenFilters(aFilters);
+      this._addFilterForField(aFilters, "Status", "statusFilter", FilterOperator.Contains, true);
+      this._addFilterForField(aFilters, "CustomerId", "customerIdFilter", FilterOperator.Contains, false);
+      this._addFilterForField(aFilters, "PlantOrigin", "plantOriginFilter", FilterOperator.Contains, false);
+      this._addFilterForField(aFilters, "CreatedBy", "createdByFilter", FilterOperator.Contains, false);
+    
+      // Apply the combined filters
+      oBinding.filter(new sap.ui.model.Filter({ filters: aFilters, and: true })); // Combine all filters with AND logic
+    
+      // Save the application state
       if (!isRestoring) {
         this._updateAppState();
       }
     },
 
+    _addTokenFilters: function (aFilters) {
+      const oMultiInput = this.getView().byId("idShippingRequestItemFilter");
+    
+      if (oMultiInput) {
+        const aTokenFilters = oMultiInput.getTokens().map(token => {
+          const tokenData = token.data();
+    
+          if (tokenData?.range) {
+            const filterOperator = tokenData.range.operation || "EQ";
+            const value1 = tokenData.range.value1; // Use the raw value
+            const value2 = tokenData.range.value2 || null;
+            return new sap.ui.model.Filter("ShippingRequestId", filterOperator, value1, value2);
+          }
+    
+          if (tokenData?.row) {
+            const value = tokenData.row.ShippingRequestId; // Use the raw value
+            return new sap.ui.model.Filter("ShippingRequestId", sap.ui.model.FilterOperator.EQ, value);
+          }
+    
+          console.warn("Unknown token structure:", token);
+          return null;
+        }).filter(filter => filter !== null);
+    
+        if (aTokenFilters.length > 0) {
+          aFilters.push(new sap.ui.model.Filter({ filters: aTokenFilters, and: false })); // OR logic for tokens
+        }
+      }
+    },
+
+    _addFilterForField: function (aFilters, path, fieldId, operator, isMultiSelect = false) {
+      const oField = this.getView().byId(fieldId);
+    
+      if (!oField) {
+        console.warn(`Field with ID ${fieldId} not found.`);
+        return;
+      }
+    
+      if (isMultiSelect) {
+        const selectedKeys = oField.getSelectedKeys();
+        if (selectedKeys && selectedKeys.length > 0) {
+          const aFieldFilters = selectedKeys.map(key => new sap.ui.model.Filter(path, operator, key));
+          aFilters.push(new sap.ui.model.Filter({ filters: aFieldFilters, and: false })); // OR logic for multiple selections
+        }
+      } else {
+        const value = oField.getValue();
+        if (value) {
+          aFilters.push(new sap.ui.model.Filter(path, operator, value));
+        }
+      }
+    },
+
+    //--------END OF FILTER TABLE---------//
+    
     _restoreSelectedItem: function (appState) {
       const oTable = this.getView().byId("shippingsTable");
       const aItems = oTable.getItems();
@@ -288,10 +353,25 @@ sap.ui.define([
         }
       });
     },
-
+    
     _getCurrentFilters: function () {
+      const oMultiInput = this.getView().byId("idShippingRequestItemFilter");
+      let shippingRequestIdFilters = [];
+
+      if (oMultiInput) {
+        // Extract tokens and save the entire token object
+        shippingRequestIdFilters = oMultiInput.getTokens().map(token => {
+          return {
+            key: token.getKey(),
+            text: token.getText(),
+            data: token.data(), // Save any associated data
+            bindingContext: token.getBindingContext() // Save the binding context if applicable
+          };
+        });
+      }
+
       return {
-        shippingRequestId: this.getView().byId("idShippingRequestItemFilter").getValue(),
+        shippingRequestId: shippingRequestIdFilters, // Save the entire object for each token
         status: this.getView().byId("statusFilter").getSelectedKeys(),
         customerId: this.getView().byId("customerIdFilter").getValue(),
         plantOrigin: this.getView().byId("plantOriginFilter").getValue(),
