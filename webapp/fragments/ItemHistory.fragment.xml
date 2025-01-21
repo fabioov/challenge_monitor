@@ -9,6 +9,8 @@
         contentWidth="1100px"
         resizable="true"
         draggable="true"
+        state="Information"
+        icon="sap-icon://history"
     >
         <content>
             <Table
