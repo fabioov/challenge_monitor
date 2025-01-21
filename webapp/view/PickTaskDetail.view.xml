@@ -54,6 +54,18 @@
 					/>
 				</snappedTitleOnMobile>
 				<actions>
+				<ObjectPageHeaderActionButton
+						id="ActionButtonCheckoutConfirmation"
+						icon="sap-icon://chart-table-view"
+						text="{i18n>ptDhIconCheckoutConfirmationText}"
+						tooltip="{i18n>ptDhIconCheckoutConfirmationTooltip}"
+						importance="Medium"
+						visible="{
+							path: 'PickTaskDetail>/SHIPPING_REQUEST_STATUS',
+							formatter: '.Formatter.checkoutConfirmationButtonVisibility'
+						}"
+						press="getCheckoutConfirmation"
+					/>
 					<ObjectPageHeaderActionButton
 						id="ActionButton0"
 						icon="sap-icon://history"

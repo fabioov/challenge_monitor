@@ -862,5 +862,74 @@ sap.ui.define([
 				this._oMaterialInfoDialog.close();
 			},
 
+			getCheckoutConfirmation: function () {
+
+				debugger;
+				var oView = this.getView();
+				var oModel = oView.getModel();
+				var pickingTaskModel = oView.getModel("PickTaskDetail");
+				var pickingTaskId = pickingTaskModel.getData().PICKING_TASK_ID;
+				var pickingTaskVersion = pickingTaskModel.getData().PICKING_TASK_VERSION;
+				
+				var aFilters = [
+					new Filter("PickingTaskId", FilterOperator.EQ, pickingTaskId),
+					new Filter("PickingTaskVersion", FilterOperator.EQ, pickingTaskVersion)
+				];
+				var oFilter = new Filter({ filters: aFilters, and: true });
+				var sElement = "/CheckoutConfirmationSet";
+
+				oModel.read(sElement, {
+					filters: [oFilter],
+					success: function (oData) {
+						if (oData.results.length > 0) {
+
+							// Create a new model for Material Info and set it to the view
+							var oCheckoutConfirmationModel = new JSONModel();
+							oCheckoutConfirmationModel.setData(oData.results);
+							oView.setModel(oCheckoutConfirmationModel, "CheckoutConfirmation");
+							console.log("Checkout Confirmation Data:", oData.results);
+
+							// Correctly bind 'this' for controller context
+							this._openCheckoutConfirmationDialog();
+						}
+					}.bind(this), // Bind the controller context here
+					error: function (oError) {
+						console.error("Error refreshing Details data:", oError);
+					}
+
+				});
+
+			},
+
+			_openCheckoutConfirmationDialog: function () {
+				var oView = this.getView();
+
+				// Check if the dialog already exists
+				if (!this._oCheckoutConfirmationDialog) {
+					Fragment.load({
+						id: oView.getId(), // Unique ID
+						name: "br.com.challenge.monitor.challengemonitor.fragments.CheckoutConfirmation", // Fragment path
+						controller: this // Controller reference
+					}).then(function (oDialog) {
+						this._oCheckoutConfirmationDialog = oDialog;
+
+						// Ensure the dialog is properly added as a dependent of the view
+						oView.addDependent(this._oCheckoutConfirmationDialog);
+
+						// Open the dialog
+						this._oCheckoutConfirmationDialog.open();
+					}.bind(this));
+				} else {
+					// Open the dialog if it already exists
+					this._oCheckoutConfirmationDialog.open();
+				}
+			},
+
+			onCloseCheckoutConfirmationDialog: function () {
+				// Close the dialog
+				this._oCheckoutConfirmationDialog.close();
+			},
+
+
 		});
 });

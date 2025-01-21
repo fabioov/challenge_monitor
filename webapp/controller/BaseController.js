@@ -63,15 +63,6 @@ sap.ui.define([
             // Return null or a default value if 'appState=' is not found
             return null;
         },
-
-        getModel: function (sName) {
-            return this.getOwnerComponent().getModel(sName) || this.getView().getModel(sName);
-        },
-
-        getRouter: function () {
-            return this.getOwnerComponent().getRouter();
-        },
-
         onPrintPress: function (oView, shippingRequestId) {
             // Pad shippingRequestId with leading zeros to make it 10 characters long
             var formattedShippingRequestId = shippingRequestId.padStart(10, '0');
@@ -86,7 +77,7 @@ sap.ui.define([
                 // Check if a PDFViewer instance already exists
                 if (!this._pdfViewer) {
                     // Create the PDFViewer instance only when needed
-                    this._pdfViewer = new sap.m.PDFViewer({
+                    this._pdfViewer = new PDFViewer({
                         isTrustedSource: true, // Trust the source
                         title: "PDF Viewer", // Set the title for the PDF viewer
                         showDownloadButton: false // Hide the download button
@@ -118,65 +109,96 @@ sap.ui.define([
             }
         },
 
-        _refreshPickingTaskView: async function (oView) {
+        _refreshPickingTaskView: function (oView) {
             return new Promise((resolve, reject) => {
                 try {
-                    let oModel = oView.getModel();
-                    let aFilters = [];
+                    const oModel = oView.getModel();
                     const oComponent = this.getOwnerComponent();
                     const oDetailsView = oComponent.getRouter().getView("br.com.challenge.monitor.challengemonitor.view.Details");
-                    let oPickDetailsView = oComponent.getRouter().getView("br.com.challenge.monitor.challengemonitor.view.PickTaskDetail");
+                    const oPickDetailsView = oComponent.getRouter().getView("br.com.challenge.monitor.challengemonitor.view.PickTaskDetail");
+
+                    // Validate required views
+                    if (!oDetailsView || !oPickDetailsView) {
+                        reject(new Error("Details or PickTaskDetail view could not be found."));
+                        return;
+                    }
+
+                    // Get selected item and binding context
                     const oTable = oDetailsView.byId("itemsTable");
-                    const oSelectedItem = oTable.getSelectedItem();
+                    const oSelectedItem = oTable?.getSelectedItem();
+
+                    if (!oSelectedItem) {
+                        reject(new Error("No item selected in the items table."));
+                        return;
+                    }
+
                     const oBindingContext = oSelectedItem.getBindingContext("Details");
-                    const oItemData = oBindingContext.getObject();
+                    const oItemData = oBindingContext?.getObject();
 
-                    console.log(this.getView().getModel("PickTaskDetail"));
-                    console.log(this.getView().getModel("Details"));
+                    if (!oItemData) {
+                        reject(new Error("No binding context or item data found."));
+                        return;
+                    }
 
-                    aFilters.push(new Filter("DELIVERY_NR", FilterOperator.EQ, oItemData.DELIVERY_NR));
-                    aFilters.push(new Filter("DELIVERY_ITEM_NR", FilterOperator.EQ, oItemData.DELIVERY_ITEM_NR));
-                    aFilters.push(new Filter("MATERIAL_NR", FilterOperator.EQ, oItemData.MATERIAL_NR));
+                    // Build filters
+                    const aFilters = [
+                        new Filter("DELIVERY_NR", FilterOperator.EQ, oItemData.DELIVERY_NR),
+                        new Filter("DELIVERY_ITEM_NR", FilterOperator.EQ, oItemData.DELIVERY_ITEM_NR),
+                        new Filter("MATERIAL_NR", FilterOperator.EQ, oItemData.MATERIAL_NR)
+                    ];
 
-                    let oFilter = new Filter({
+                    const oFilter = new Filter({
                         filters: aFilters,
                         and: true
                     });
 
-                    let sElement = "/ZRFSFBPCDS0002";
+                    // Define the OData entity set
+                    const sEntitySet = "/ZRFSFBPCDS0002";
 
-                    // Read data from the primary entity set
-                    oModel.read(sElement, {
+                    // Read data from the model
+                    oModel.read(sEntitySet, {
                         filters: [oFilter],
-                        success: (oData) => {
-                            console.log("Data refreshed:", oData);
-
-                            let oJSONModel = new JSONModel();
-                            oJSONModel.setData(oData.results[0]);
-
-                            oView.setModel(oJSONModel, "PickTaskDetail");
-
-                            const oObjectPageLayout = oPickDetailsView.byId("ObjectPageLayout");
-                            if (oObjectPageLayout) {
-                                oObjectPageLayout.invalidate();
-                                oObjectPageLayout.rerender();
-                            }
-
-                            // Resolve the promise with the SHIPPING_REQUEST_ID
-                            resolve(oData.results[0].SHIPPING_REQUEST_ID);
-                        },
+                        success: (oData) => this._handleRefreshSuccess(oData, oView, oPickDetailsView, resolve),
                         error: (oError) => {
                             console.error("Error refreshing picking task view:", oError);
-                            reject(oError); // Reject the promise with the error
+                            reject(oError);
                         }
                     });
                 } catch (error) {
-                    console.error("Error in _refreshPickingTaskView:", error);
-                    reject(error); // Reject the promise with any unexpected errors
+                    console.error("Unexpected error in _refreshPickingTaskView:", error);
+                    reject(error);
                 }
             });
         },
 
+        _handleRefreshSuccess: function (oData, oView, oPickDetailsView, resolve) {
+            if (!oData || !oData.results || oData.results.length === 0) {
+                console.warn("No data returned from the OData service.");
+                resolve(null);
+                return;
+            }
+
+            // Set the data to the "PickTaskDetail" model
+            const oJSONModel = new JSONModel(oData.results[0]);
+            oView.setModel(oJSONModel, "PickTaskDetail");
+
+            // Invalidate and re-render the ObjectPageLayout
+            const oObjectPageLayout = oPickDetailsView.byId("ObjectPageLayout");
+            if (oObjectPageLayout) {
+                oObjectPageLayout.invalidate();
+            }
+
+            // Resolve the promise with the SHIPPING_REQUEST_ID
+            resolve(oData.results[0].SHIPPING_REQUEST_ID);
+        },
+
+        getModel: function (sName) {
+            return this.getOwnerComponent().getModel(sName) || this.getView().getModel(sName);
+        },
+
+        getRouter: function () {
+            return this.getOwnerComponent().getRouter();
+        },
 
     });
 });

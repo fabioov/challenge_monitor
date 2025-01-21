@@ -53,6 +53,20 @@
                 <Property Name="Params" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
                 <Property Name="FormId" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
             </EntityType>
+            <EntityType Name="CheckoutConfirmation" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="PickingTaskId"/>
+                    <PropertyRef Name="PickingTaskVersion"/>
+                </Key>
+                <Property Name="ConfirmationId" Type="Edm.String" Nullable="false" MaxLength="19" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="ConfirmationRead" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="PickingTaskId" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="PickingTaskVersion" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="ShippingRequestId" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Material" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Quantity" Type="Edm.Decimal" Nullable="false" Precision="13" Scale="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Uom" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="Base Unit" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="unit-of-measure"/>
+            </EntityType>
             <EntityType Name="ZRFSCDS_MATERIAL_INFOType" sap:content-version="1">
                 <Key>
                     <PropertyRef Name="Product"/>
@@ -115,13 +129,12 @@
                     <PropertyRef Name="DELIVERY_NR"/>
                     <PropertyRef Name="DELIVERY_ITEM_NR"/>
                     <PropertyRef Name="MATERIAL_NR"/>
-                    <PropertyRef Name="MATERIAL_DESCRIPTION"/>
                 </Key>
                 <Property Name="SHIPPING_REQUEST_ID" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label=""/>
                 <Property Name="DELIVERY_NR" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label=""/>
                 <Property Name="DELIVERY_ITEM_NR" Type="Edm.String" Nullable="false" MaxLength="6" sap:display-format="NonNegative" sap:label=""/>
                 <Property Name="MATERIAL_NR" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label=""/>
-                <Property Name="MATERIAL_DESCRIPTION" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label=""/>
+                <Property Name="MATERIAL_DESCRIPTION" Type="Edm.String" MaxLength="40" sap:label="Material Description"/>
                 <Property Name="QUANTITY" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="QUANTITY_UM" sap:label=""/>
                 <Property Name="QUANTITY_UM" Type="Edm.String" MaxLength="3" sap:label="Base Unit of Measure" sap:semantics="unit-of-measure"/>
                 <Property Name="GROSS_WEIGHT" Type="Edm.Decimal" Precision="15" Scale="3" sap:unit="WEIGHT_UM" sap:label=""/>
@@ -213,6 +226,7 @@
             <EntityContainer Name="ZRFSFBPMONITORCHALLENGE_SRV_Entities" m:IsDefaultEntityContainer="true" sap:message-scope-supported="true" sap:supported-formats="atom json xlsx">
                 <EntitySet Name="NextIdSet" EntityType="ZRFSFBPMONITORCHALLENGE_SRV.NextId" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
                 <EntitySet Name="PrintOpSet" EntityType="ZRFSFBPMONITORCHALLENGE_SRV.PrintOp" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="CheckoutConfirmationSet" EntityType="ZRFSFBPMONITORCHALLENGE_SRV.CheckoutConfirmation" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
                 <EntitySet Name="ZRFSCDS_MATERIAL_INFO" EntityType="ZRFSFBPMONITORCHALLENGE_SRV.ZRFSCDS_MATERIAL_INFOType" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
                 <EntitySet Name="ZRFSFBPCDS0001" EntityType="ZRFSFBPMONITORCHALLENGE_SRV.ZRFSFBPCDS0001Type" sap:creatable="false" sap:deletable="false" sap:content-version="1"/>
                 <EntitySet Name="ZRFSFBPCDS0002" EntityType="ZRFSFBPMONITORCHALLENGE_SRV.ZRFSFBPCDS0002Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
@@ -223,8 +237,8 @@
                 <EntitySet Name="ZRFSFBP_SH_STATUS" EntityType="ZRFSFBPMONITORCHALLENGE_SRV.ZRFSFBP_SH_STATUSType" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
                 <EntitySet Name="ZRFSFBP_SH_USER" EntityType="ZRFSFBPMONITORCHALLENGE_SRV.ZRFSFBP_SH_USERType" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
                 <FunctionImport Name="GetNextId" ReturnType="ZRFSFBPMONITORCHALLENGE_SRV.NextId" EntitySet="NextIdSet" m:HttpMethod="GET">
-                    <Parameter Name="Object" Type="Edm.String" Mode="In" MaxLength="10"/>
                     <Parameter Name="NrRange" Type="Edm.String" Mode="In" MaxLength="2"/>
+                    <Parameter Name="Object" Type="Edm.String" Mode="In" MaxLength="10"/>
                 </FunctionImport>
             </EntityContainer>
             <Annotations Target="ZRFSFBPMONITORCHALLENGE_SRV.ZRFSFBPMONITORCHALLENGE_SRV_Entities" xmlns="http://docs.oasis-open.org/odata/ns/edm">

@@ -134,6 +134,21 @@ sap.ui.define([
             }
         },
 
+        checkoutConfirmationButtonVisibility: function (value) {
+
+            try {
+                if (value === 'K') {
+                    return true
+                } else {
+                    return false
+                }
+            }
+            catch (error) {
+                return ""
+            }
+
+        },
+
         restartPickTaskVisisibility: function (value) {
             try {
                 if (value === 'C') {
@@ -156,15 +171,6 @@ sap.ui.define([
             let latestVersion = oModel.getProperty("/LatestVersion");
             return value === latestVersion ? "Success" : "None";
         },
-
-        formatUnitForLatestVersion: function (value) {
-            let oModel = this.getView().getModel("History");
-            let latestVersion = oModel.getProperty("/LatestVersion");
-        
-            // Return "Latest Version" only for the latest version
-            return value === latestVersion ? "Newest Version" : "";
-        },
-
         formatVersionInversion: function (value) {
             let oModel = this.getView().getModel("History");
             let latestVersion = oModel.getProperty("/LatestVersion");
@@ -261,7 +267,15 @@ sap.ui.define([
             return formattedCustomerId && sCustomerName
                 ? `${formattedCustomerId} - ${sCustomerName}`
                 : formattedCustomerId || sCustomerName || "";
-        }
+        },
+
+        confirmationReadIcon: function (bValue) {
+            return bValue ? "sap-icon://accept" : "sap-icon://decline";
+        },
+        
+        confirmationReadColor: function (bValue) {
+            return bValue ? "green" : "red";
+        },
 
     }
 

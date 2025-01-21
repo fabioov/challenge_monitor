@@ -1,0 +1,76 @@
+<c:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:c="sap.ui.core"
+>
+    <Dialog
+        id="checkoutConfirmationDialog"
+        contentHeight="400px"
+        contentWidth="700px"
+        draggable="true"
+        resizable="true"
+        icon="sap-icon://chart-table-view"
+        state="Information"
+        title="{i18n>checkoutConfirmationTitle}"
+        titleAlignment="Center"
+    >
+        <content>
+            <Table
+                id="checkoutConfirmationTable"
+                alternateRowColors="true"
+                items="{CheckoutConfirmation>/}"
+                width="100%"
+            >
+                <columns>
+                    <Column id="columnConfirmationId">
+                        <Text text="{i18n>ccConfirmationId}" />
+                    </Column>
+                    <Column id="columnConfirmationRead">
+                        <Text text="{i18n>ccConfirmationRead}" />
+                    </Column>
+                    <Column id="columnShippingRequestId">
+                        <Text text="{i18n>ccShippingRequestId}" />
+                    </Column>
+                    <Column id="columnMaterial">
+                        <Text text="{i18n>ccMaterial}" />
+                    </Column>
+                    <Column id="columnQuantity">
+                        <Text text="{i18n>ccQuantity}" />
+                    </Column>
+                    <Column id="columnUom">
+                        <Text text="{i18n>ccUom}" />
+                    </Column>
+                </columns>
+                <items>
+                    <ColumnListItem>
+                        <Text text="{CheckoutConfirmation>ConfirmationId}" />
+                        <c:Icon
+                            src="{
+                                path: 'CheckoutConfirmation>ConfirmationRead',
+                                formatter: '.Formatter.confirmationReadIcon'
+                            }"
+                            width="1em"
+                            color="{
+                                path: 'CheckoutConfirmation>ConfirmationRead',
+                                formatter: '.Formatter.confirmationReadColor'
+                            }"
+                        />
+                        <Text text="{CheckoutConfirmation>ShippingRequestId}" />
+                        <Text text="{CheckoutConfirmation>Material}" />
+                        <ObjectNumber
+                            number="{CheckoutConfirmation>Quantity}"
+                            unit="{CheckoutConfirmation>Uom}"
+                        />
+                        <Text text="{CheckoutConfirmation>Uom}" />
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+         <endButton>
+            <Button
+                id="IdCloseCheckoutConfirmationDialog"
+                text="{i18n>ptlBtnClose}"
+                press=".onCloseCheckoutConfirmationDialog"
+            />
+        </endButton>
+    </Dialog>
+</c:FragmentDefinition>
