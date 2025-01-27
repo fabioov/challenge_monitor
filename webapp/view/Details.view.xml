@@ -381,33 +381,33 @@
 			</subSections>
 		</ObjectPageSection>
 		<footer>
-			<m:OverflowToolbar id="OverflowToolbar">
-				<m:Button
-					visible="{popoverModel>/visible}"
-					icon="sap-icon://message-popup"
-					id="idButtonMessage2"
-					text="{popoverModel>/messageLength}"
-					type="{popoverModel>/type}"
-					press="onMessagesButtonPress"
-					ariaHasPopup="Dialog"
-					class="messageButton"
-				/>
-				<m:ToolbarSpacer />
-				<m:Button
-					id="_IDGenButton1"
-					text="{i18n>btnChangeStatus}"
-					press="onChangeStatus"
-					type="Accept"
-				/>
-				<m:Button
-					id="_IDGenButton169562261"
-					enabled="true"
-					iconDensityAware="true"
-					text="{i18n>btnCancelShipRequest}"
-					press="onCancelShippingRequest"
-					type="Reject"
-				/>
-			</m:OverflowToolbar>
-		</footer>
+    <m:OverflowToolbar id="OverflowToolbar">
+        <!-- MessagePopover Button -->
+        <m:Button
+            visible="{popoverModel>/visible}"
+            icon="sap-icon://message-popup"
+            id="idButtonMessage2"
+            text="{popoverModel>/messageLength}"
+            type="{popoverModel>/type}"
+            press="onMessagesButtonPress"
+            ariaHasPopup="Dialog"
+            class="messageButton"
+        />
+
+        <m:ToolbarSpacer />
+        <m:Button
+            id="_IDGenButton1"
+            text="{i18n>btnChangeStatus}"
+            press="onChangeStatus"
+            type="Accept"
+        />
+        <m:Button
+            id="_IDGenButton169562261"
+            text="{i18n>btnCancelShipRequest}"
+            press="onCancelShippingRequest"
+            type="Reject"
+        />
+    </m:OverflowToolbar>
+</footer>
 	</ObjectPageLayout>
 </mvc:View>

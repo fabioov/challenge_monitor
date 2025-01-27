@@ -84,7 +84,7 @@ sap.ui.define([
         },
 
         onMessagesButtonPress: function (oEvent) {
-            MessagePopoverHook.onMessagesPopoverOpen(oEvent);
+            MessagePopoverHook.onMessagesPopoverOpen(oEvent, this.getView());
         },
 
         _restoreState: function (url) {

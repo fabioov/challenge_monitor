@@ -553,12 +553,15 @@ sap.ui.define([
 							},
 							error: (oError) => {
 								let oMessageParams = {
-									type: "Error",
-									title: that._oBundle.getText("pdtErrorRestartingPickingTask", [oItem.PICKING_TASK_ID]),
-									subtitle: that._oBundle.getText("pdtInformShippingRequest", [oItem.SHIPPING_REQUEST_ID]),
-									description: oError
+									type: "Error", // The type of the message
+									title: that._oBundle.getText("pdtErrorRestartingPickingTask", [oItem.PICKING_TASK_ID]), // Dynamic title
+									subtitle: that._oBundle.getText("pdtInformShippingRequest", [oItem.SHIPPING_REQUEST_ID]), // Dynamic subtitle
+									description: typeof oError === "string" ? oError : JSON.stringify(oError) // Ensure the description is a string
 								};
+
+								// Call the MessagePopoverHook to add the error message
 								MessagePopoverHook.onSetMessage(oView, oMessageParams);
+
 								that._oBusyDialog.close();
 							}
 						});
@@ -595,11 +598,12 @@ sap.ui.define([
 							groupId: sGroupId,
 							changeSetId: sChangeSetId, // Unique changeset for each item
 							success: (oData) => {
+								debugger;
 								let oMessageParams = {
 									type: "Success",
 									title: that._oBundle.getText("pdtPickingTaskRestarted", [oItem.PICKING_TASK_ID, oItem.PICKING_TASK_VERSION + 1]),
 									subtitle: that._oBundle.getText("pdtInformShippingRequest", [oItem.SHIPPING_REQUEST_ID]),
-									description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [oItem.DELIVERY_ITEM_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR])
+									description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [oItem.DELIVERY_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR])
 								};
 								MessagePopoverHook.onSetMessage(oView, oMessageParams);
 								that._bindTable(oItem.SHIPPING_REQUEST_ID);
@@ -870,7 +874,7 @@ sap.ui.define([
 				var pickingTaskModel = oView.getModel("PickTaskDetail");
 				var pickingTaskId = pickingTaskModel.getData().PICKING_TASK_ID;
 				var pickingTaskVersion = pickingTaskModel.getData().PICKING_TASK_VERSION;
-				
+
 				var aFilters = [
 					new Filter("PickingTaskId", FilterOperator.EQ, pickingTaskId),
 					new Filter("PickingTaskVersion", FilterOperator.EQ, pickingTaskVersion)

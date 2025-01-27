@@ -247,24 +247,24 @@ sap.ui.define([
     filterTable: function (filters, isRestoring) {
       const oTable = this.getView().byId("shippingsTable");
       const oBinding = oTable.getBinding("items");
-    
+
       if (!oBinding) {
         console.warn("No binding found for table items. Ensure the table has a valid binding context.");
         return;
       }
-    
+
       const aFilters = [];
-    
+
       // Extract and add filters for the table
       this._addTokenFilters(aFilters);
       this._addFilterForField(aFilters, "Status", "statusFilter", FilterOperator.Contains, true);
       this._addFilterForField(aFilters, "CustomerId", "customerIdFilter", FilterOperator.Contains, false);
       this._addFilterForField(aFilters, "PlantOrigin", "plantOriginFilter", FilterOperator.Contains, false);
       this._addFilterForField(aFilters, "CreatedBy", "createdByFilter", FilterOperator.Contains, false);
-    
+
       // Apply the combined filters
       oBinding.filter(new sap.ui.model.Filter({ filters: aFilters, and: true })); // Combine all filters with AND logic
-    
+
       // Save the application state
       if (!isRestoring) {
         this._updateAppState();
@@ -273,27 +273,27 @@ sap.ui.define([
 
     _addTokenFilters: function (aFilters) {
       const oMultiInput = this.getView().byId("idShippingRequestItemFilter");
-    
+
       if (oMultiInput) {
         const aTokenFilters = oMultiInput.getTokens().map(token => {
           const tokenData = token.data();
-    
+
           if (tokenData?.range) {
             const filterOperator = tokenData.range.operation || "EQ";
             const value1 = tokenData.range.value1; // Use the raw value
             const value2 = tokenData.range.value2 || null;
             return new sap.ui.model.Filter("ShippingRequestId", filterOperator, value1, value2);
           }
-    
+
           if (tokenData?.row) {
             const value = tokenData.row.ShippingRequestId; // Use the raw value
             return new sap.ui.model.Filter("ShippingRequestId", sap.ui.model.FilterOperator.EQ, value);
           }
-    
+
           console.warn("Unknown token structure:", token);
           return null;
         }).filter(filter => filter !== null);
-    
+
         if (aTokenFilters.length > 0) {
           aFilters.push(new sap.ui.model.Filter({ filters: aTokenFilters, and: false })); // OR logic for tokens
         }
@@ -302,12 +302,12 @@ sap.ui.define([
 
     _addFilterForField: function (aFilters, path, fieldId, operator, isMultiSelect = false) {
       const oField = this.getView().byId(fieldId);
-    
+
       if (!oField) {
         console.warn(`Field with ID ${fieldId} not found.`);
         return;
       }
-    
+
       if (isMultiSelect) {
         const selectedKeys = oField.getSelectedKeys();
         if (selectedKeys && selectedKeys.length > 0) {
@@ -323,7 +323,7 @@ sap.ui.define([
     },
 
     //--------END OF FILTER TABLE---------//
-    
+
     _restoreSelectedItem: function (appState) {
       const oTable = this.getView().byId("shippingsTable");
       const aItems = oTable.getItems();
@@ -353,7 +353,7 @@ sap.ui.define([
         }
       });
     },
-    
+
     _getCurrentFilters: function () {
       const oMultiInput = this.getView().byId("idShippingRequestItemFilter");
       let shippingRequestIdFilters = [];
@@ -466,7 +466,7 @@ sap.ui.define([
     },
 
     onMessagesButtonPress: function (oEvent) {
-      MessagePopoverHook.onMessagesPopoverOpen(oEvent);
+      MessagePopoverHook.onMessagesPopoverOpen(oEvent, this.getView());
     },
 
     onFilterBarReset: function () {
@@ -506,7 +506,6 @@ sap.ui.define([
         console.error("FilterBar not found.");
       }
     },
-
 
   });
 });

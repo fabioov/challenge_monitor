@@ -16,7 +16,9 @@
             title="{Kunnr}"
             description="Name: {Name}"
             info="Country: {Country}"
-            icon="sap-icon://detail-view"
+            infoState="Information"
+            infoStateInverted="true"
+            icon="sap-icon://customer"
             iconDensityAware="false"
             iconInset="false"
         />

@@ -15,7 +15,7 @@
             id="idStandardListItemUser"
             title="{UserName}"
             description="Name: {FirstName} {LastName}"
-            icon="sap-icon://detail-view"
+            icon="sap-icon://employee"
             iconDensityAware="false"
             iconInset="false"
         />

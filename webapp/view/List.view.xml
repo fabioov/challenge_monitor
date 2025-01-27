@@ -78,12 +78,18 @@
                                         selectionChange=".onSelectionChange"
                                         items="{
                                             path: '/ZRFSFBP_SH_STATUS',
-                                            templateShareable: true
+                                            templateShareable: true,
+                                            sorter: {
+                                                path: 'DomvalueL',
+                                                descending: false
+                                            }
                                         }"
                                         placeholder="{i18n>fgStatusPlaceholder}"
                                         tooltip="{i18n>fgStatusTooltip}"
+                                        showSelectAll="true"
                                     >
-                                        <core:Item
+                                        <core:ListItem
+                                            id="_IDGenListItem"
                                             key="{DomvalueL}"
                                             text="{DomvalueL} - {Ddtext}"
                                         />
@@ -347,7 +353,7 @@
                         press="onMessagesButtonPress"
                         ariaHasPopup="Dialog"
                         class="messageButton"
-                    />
+                    />                  
                 </semantic:footerCustomActions>
             </semantic:SemanticPage>
         </content>
