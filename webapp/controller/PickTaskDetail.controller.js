@@ -467,12 +467,6 @@ sap.ui.define([
 
 					// Resolve the promise with the items to restart
 					if (sButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnRestart") || sButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnDelete")) {
-						// Exclude duplicates by PICKING_TASK_ID
-						// aItems = aItems.filter((oItem, index, self) =>
-						// 	index === self.findIndex((t) => (
-						// 		t.PICKING_TASK_ID === oItem.PICKING_TASK_ID
-						// 	))
-						// );
 						resolve(aItems);
 					} else {
 						fetchPickingTaskId().then((sPickingTaskId) => {
@@ -549,8 +543,8 @@ sap.ui.define([
 										title: that._oBundle.getText("pdtPickTaskIdDeleted", [
 											relatedItem.PICKING_TASK_ID
 										]),
-										subtitle: that._oBundle.getText("pdtInformShippingRequest", [
-											relatedItem.SHIPPING_REQUEST_ID
+										subtitle: that._oBundle.getText("pdtInformMaterial", [
+											relatedItem.MATERIAL_NR
 										]),
 										description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [
 											relatedItem.DELIVERY_NR,
@@ -653,8 +647,8 @@ sap.ui.define([
 											relatedItem.PICKING_TASK_ID,
 											parseInt(relatedItem.PICKING_TASK_VERSION) + 1
 										]),
-										subtitle: that._oBundle.getText("pdtInformShippingRequest", [
-											relatedItem.SHIPPING_REQUEST_ID
+										subtitle: that._oBundle.getText("pdtInformMaterial", [
+											relatedItem.MATERIAL_NR
 										]),
 										description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [
 											relatedItem.DELIVERY_NR,
@@ -706,14 +700,14 @@ sap.ui.define([
 				let sGroupId = "batchCreateGroup";
 				let that = this;
 				this._oBundle = oView.getModel("i18n").getResourceBundle();
-			
+
 				oModel.metadataLoaded().then(function () {
 					oModel.setDeferredGroups([sGroupId]);
-			
+
 					// Process all items without deduplication to add all materials
 					items.forEach((oItem) => {
 						let sChangeSetId = oItem.SHIPPING_REQUEST_ID + oItem.DELIVERY_NR + oItem.DELIVERY_ITEM_NR + oItem.MATERIAL_NR;
-			
+
 						// Create batch operation for each item
 						oModel.createEntry("/ZRFSFBPCDS0002", {
 							groupId: sGroupId,
@@ -736,7 +730,7 @@ sap.ui.define([
 									])
 								};
 								MessagePopoverHook.onSetMessage(oView, oMessageParams, "create");
-			
+
 								// Update the view for the associated shipping request
 								that._bindTable(oData.SHIPPING_REQUEST_ID);
 								that._refreshPickingTaskView(oView)
@@ -764,7 +758,7 @@ sap.ui.define([
 							}
 						});
 					});
-			
+
 					// Submit all changes in a single batch
 					oModel.submitChanges({
 						groupId: sGroupId,
@@ -781,22 +775,6 @@ sap.ui.define([
 					console.error("Metadata load error:", error);
 					that._oBusyDialog.close();
 				});
-			},
-
-			_onSubmitChanges: function (sGroupId) {
-				let oView = this.getView();
-				let oModel = oView.getModel();
-				let that = this;
-				oModel.submitChanges({
-					groupId: sGroupId,
-					success: () => {
-						that._oBusyDialog.close();
-					},
-					error: (oError) => {
-						that._oBusyDialog.close();
-					}
-				});
-
 			},
 
 			_bindTable: function (shippingRequestId) {
