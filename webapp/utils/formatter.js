@@ -51,7 +51,11 @@ sap.ui.define([
                 if (value === 'C') {
                     return "Success"
                 } else if (value === 'K') {
-                    return "Warning"
+                    return "Indication05"
+                } else if (value === 'S') {
+                    return "Indication07"
+                } else if (value === 'P') {
+                    return "Indication03"
                 } else {
                     return "None"
                 }
@@ -79,41 +83,6 @@ sap.ui.define([
             }
         },
 
-        floatNumber: function (value) {
-            var numberFloat = NumberFormat.getFloatInstance({
-                maxFractionDigits: 2,
-                minFractionDigits: 2,
-                groupingEnabled: true,
-                groupingSeparator: ".",
-                decimalSeparator: ","
-            })
-
-            return numberFloat.format(value);
-        },
-
-        dateSAP: function (value) {
-
-            if (value) {
-
-                var dateParts = value.split("/");
-
-                var dateObject = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-
-                var oDateFormat = sap.ui.core.format.DateFormat.getDateInstance({
-
-                    pattern: "yyyy-MM-ddTHH:mm:ss"
-
-                });
-
-                return oDateFormat.format(new Date(dateObject));
-
-            } else {
-
-                return value;
-
-            }
-
-        },
         statusButtonVisibility: function (value) {
 
             try {
@@ -260,18 +229,10 @@ sap.ui.define([
             return sValue; // Return original value if empty or undefined
         },
 
-        combineCustomerInfo: function (sCustomerId, sCustomerName) {
-            // Suppress leading zeros for CustomerId and combine with CustomerName
-            const formattedCustomerId = sCustomerId ? sCustomerId.replace(/^0+/, "") : "";
-            return formattedCustomerId && sCustomerName
-                ? `${formattedCustomerId} - ${sCustomerName}`
-                : formattedCustomerId || sCustomerName || "";
-        },
-
         confirmationReadIcon: function (bValue) {
             return bValue ? "sap-icon://accept" : "sap-icon://decline";
         },
-        
+
         confirmationReadColor: function (bValue) {
             return bValue ? "green" : "red";
         },

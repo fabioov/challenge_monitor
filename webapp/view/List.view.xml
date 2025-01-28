@@ -48,7 +48,7 @@
                                 name="ShippingRequestId"
                                 labelTooltip="{fgShippingRequestIdTooltip}"
                                 visibleInFilterBar="true"
-                                groupTitle="{i18n>fgHeaderGroup}"
+                                groupTitle="{i18n>fgGroupOne}"
                                 groupName="Principal"
                             >
                                 <fb:control>
@@ -68,8 +68,8 @@
                                 name="Status"
                                 labelTooltip="{fgStatusTooltip}"
                                 visibleInFilterBar="true"
-                                groupTitle="{i18n>fgHeaderGroup}"
-                                groupName="Principal"
+                                groupTitle="{i18n>fgGroupTwo}"
+                                groupName="Secondary"
                             >
                                 <fb:control>
                                     <MultiComboBox
@@ -102,7 +102,7 @@
                                 name="CustomerId"
                                 labelTooltip="{fgCustomerIdTooltip}"
                                 visibleInFilterBar="true"
-                                groupTitle="{i18n>fgHeaderGroup}"
+                                groupTitle="{i18n>fgGroupOne}"
                                 groupName="Principal"
                             >
                                 <fb:control>
@@ -122,7 +122,7 @@
                                 name="PlantOrigin"
                                 labelTooltip="{fgPlantOriginTooltip}"
                                 visibleInFilterBar="true"
-                                groupTitle="{i18n>fgHeaderGroup}"
+                                groupTitle="{i18n>fgGroupOne}"
                                 groupName="Principal"
                             >
                                 <fb:control>
@@ -142,8 +142,8 @@
                                 name="CreatedBy"
                                 labelTooltip="{fgCreatedByTooltip}"
                                 visibleInFilterBar="false"
-                                groupTitle="{i18n>fgHeaderGroup}"
-                                groupName="Principal"
+                                groupTitle="{i18n>fgGroupTwo}"
+                                groupName="Secondary"
                             >
                                 <fb:control>
                                     <Input
@@ -191,16 +191,12 @@
                                         type="Active"
                                     >
                                         <cells>
-                                            <core:Icon
+                                            <!-- <core:Icon
                                                 id="idIcon"
                                                 src="sap-icon://cart-5"
                                                 size="2em"
-                                            />
-                                            <Text
-                                                id="idText"
-                                                text="{ShippingRequestId}"
-                                            />
-                                            <ObjectStatus
+                                            /> -->
+                                                                                        <ObjectStatus
                                                 text="{
                                                     path: 'Status',
                                                     formatter: '.Formatter.shippingStatus'
@@ -216,15 +212,18 @@
                                                 }"
                                             />
                                             <Text
-                                                id="idText2"
-                                                text="{
+                                                id="idText"
+                                                text="{ShippingRequestId}"
+                                            />
+                                            <ObjectIdentifier
+                                                id="ObjectIdentifier"
+                                                title="{
                                                     parts: [{
                                                         path: 'CustomerId'
-                                                    }, {
-                                                        path: 'CustomerName'
                                                     }],
-                                                    formatter: '.Formatter.combineCustomerInfo'
+                                                    formatter: '.Formatter.suppressLeadingZeros'
                                                 }"
+                                                text="{CustomerName}"
                                             />
                                             <Text
                                                 id="idText222"
@@ -250,7 +249,7 @@
                                     </ColumnListItem>
                                 </items>
                                 <columns>
-                                    <Column
+                                    <!-- <Column
                                         id="idColumn"
                                         width="6em"
                                     >
@@ -258,6 +257,17 @@
                                             <Label
                                                 id="logo"
                                                 text=""
+                                            />
+                                        </header>
+                                    </Column> -->
+                                     <Column
+                                        id="idColumn16"
+                                        width="12em"
+                                    >
+                                        <header>
+                                            <Label
+                                                id="statusColumn"
+                                                text="{i18n>Status}"
                                             />
                                         </header>
                                     </Column>
@@ -271,18 +281,7 @@
                                                 text="{i18n>ShippingRequestId}"
                                             />
                                         </header>
-                                    </Column>
-                                    <Column
-                                        id="idColumn16"
-                                        width="12em"
-                                    >
-                                        <header>
-                                            <Label
-                                                id="statusColumn"
-                                                text="{i18n>Status}"
-                                            />
-                                        </header>
-                                    </Column>
+                                    </Column>                                   
                                     <Column
                                         id="idColumn3"
                                         width="20em"
@@ -353,7 +352,7 @@
                         press="onMessagesButtonPress"
                         ariaHasPopup="Dialog"
                         class="messageButton"
-                    />                  
+                    />
                 </semantic:footerCustomActions>
             </semantic:SemanticPage>
         </content>
