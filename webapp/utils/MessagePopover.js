@@ -19,7 +19,7 @@ sap.ui.define([
     let oPopoverModel = new JSONModel();
 
     let MessagePopoverHook = {
-        createMessagePopover: function (oView) {
+        _createMessagePopover: function (oView) {
             // Ensure the MessagePopover is created only once
             if (!oMessagePopover) {
                 oMessagePopover = new MessagePopover({
@@ -61,7 +61,7 @@ sap.ui.define([
 
         onSetMessage: function (oView, oParams) {
             // Ensure the MessagePopover is created before setting a message
-            let oMessagePopover = this.createMessagePopover(oView);
+            let oMessagePopover = this._createMessagePopover(oView);
 
             // Prepare the new message data
             let messageData = [{
@@ -89,7 +89,7 @@ sap.ui.define([
         },
 
         onMessagesPopoverOpen: function (oEvent, oView) {
-            let oMessagePopover = this.createMessagePopover(oView);
+            let oMessagePopover = this._createMessagePopover(oView);
             oMessagePopover.toggle(oEvent.getSource());
         }
     };
