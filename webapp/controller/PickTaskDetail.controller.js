@@ -552,7 +552,7 @@ sap.ui.define([
 											relatedItem.MATERIAL_NR
 										])
 									};
-									MessagePopoverHook.onSetMessage(oView, oMessageParams, "delete");
+									MessagePopoverHook.onSetMessage(oView, oMessageParams);
 								});
 
 								// Update the view after successful deletion
@@ -656,7 +656,7 @@ sap.ui.define([
 											relatedItem.MATERIAL_NR
 										])
 									};
-									MessagePopoverHook.onSetMessage(oView, oMessageParams, "restart");
+									MessagePopoverHook.onSetMessage(oView, oMessageParams);
 								});
 
 								// Update the view and close busy dialog
@@ -754,7 +754,7 @@ sap.ui.define([
 									]),
 									description: typeof oError === "string" ? oError : JSON.stringify(oError)
 								};
-								MessagePopoverHook.onSetMessage(oView, oMessageParams, "create");
+								MessagePopoverHook.onSetMessage(oView, oMessageParams);
 							}
 						});
 					});

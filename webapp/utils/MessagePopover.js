@@ -59,7 +59,7 @@ sap.ui.define([
             return oMessagePopover;
         },
 
-        onSetMessage: function (oView, oParams, action) {
+        onSetMessage: function (oView, oParams) {
             // Ensure the MessagePopover is created before setting a message
             let oMessagePopover = this._createMessagePopover(oView);
 
