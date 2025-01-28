@@ -67,8 +67,6 @@ sap.ui.define([
             // Pad shippingRequestId with leading zeros to make it 10 characters long
             var formattedShippingRequestId = shippingRequestId.padStart(10, '0');
 
-            // Debugger and call the preview function
-            debugger;
             this._previewSmartform(oView, "ZRFSFBPSF0001", formattedShippingRequestId);
         },
 

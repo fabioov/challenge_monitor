@@ -417,7 +417,7 @@ sap.ui.define([
                                             type: "Success",
                                             title: that._oBundle.getText("lvStatusChangedSuccessfully", [shippingRequest.ShippingRequestId])
                                         };
-                                        MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                                        MessagePopoverHook.onSetMessage(that.getView(), oParams, "changeStatus");
                                         MessageBox.success(oParams.title);
                                         that._oBusyDialog.close();
 
@@ -441,7 +441,7 @@ sap.ui.define([
                                         autoClose: true,
                                         closeIcon: false
                                     });
-                                    MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                                    MessagePopoverHook.onSetMessage(that.getView(), oParams, "changeStatus");
                                     that._oBusyDialog.close();
                                 }
                             });
@@ -485,7 +485,7 @@ sap.ui.define([
                                             type: "Success",
                                             title: that._oBundle.getText("lvStatusCancelledSuccessfully", [shippingRequest.ShippingRequestId])
                                         };
-                                        MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                                        MessagePopoverHook.onSetMessage(that.getView(), oParams, "cancelShippingRequest");
                                         MessageBox.success(oParams.title);
                                         that._oBusyDialog.close();
                                         that._refreshHeaderAndDetails();
@@ -508,7 +508,7 @@ sap.ui.define([
                                         autoClose: true,
                                         closeIcon: false
                                     });
-                                    MessagePopoverHook.onSetMessage(that.getView(), oParams);
+                                    MessagePopoverHook.onSetMessage(that.getView(), oParams, "cancelShippingRequest");
                                     that._oBusyDialog.close();
                                 }
                             });
@@ -556,8 +556,6 @@ sap.ui.define([
             const currentAppState = this.getAppStateFromUrl();
             this.getModel("appView").setProperty("/layout", "TwoColumnsBeginExpanded");
             this._saveStateOnChangeStatus(currentAppState);
-
-            debugger;
 
             const oComponent = this.getOwnerComponent();
             const oDetailsView = oComponent.getRouter().getView("br.com.challenge.monitor.challengemonitor.view.Details");

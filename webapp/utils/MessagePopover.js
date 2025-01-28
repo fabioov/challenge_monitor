@@ -59,17 +59,19 @@ sap.ui.define([
             return oMessagePopover;
         },
 
-        onSetMessage: function (oView, oParams) {
+        onSetMessage: function (oView, oParams, action) {
             // Ensure the MessagePopover is created before setting a message
             let oMessagePopover = this._createMessagePopover(oView);
 
+            let messageData = [];
+
             // Prepare the new message data
-            let messageData = [{
+            messageData.push({
                 type: oParams.type,
                 title: oParams.title,
                 subtitle: oParams.subtitle,
                 description: oParams.description
-            }];
+            });
 
             // Get the current messages
             let previous = oMessagePopover.getModel().getData();

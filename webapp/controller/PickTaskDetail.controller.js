@@ -233,7 +233,6 @@ sap.ui.define([
 						oData.LatestVersion = latestVersion;
 						let oJSONModel = new JSONModel(oData);
 						oView.setModel(oJSONModel, "History");
-						debugger;
 
 						// Load the fragment only after data is successfully fetched
 						if (!this._ItemHistory) {
@@ -421,7 +420,7 @@ sap.ui.define([
 				}).catch((error) => {
 					console.error(oBundle.getText("pdtErroGettingSelectedItems"), error);
 				});
-				// }
+
 			},
 
 			_getSelectedItems: function (oTable) {
@@ -469,11 +468,11 @@ sap.ui.define([
 					// Resolve the promise with the items to restart
 					if (sButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnRestart") || sButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnDelete")) {
 						// Exclude duplicates by PICKING_TASK_ID
-						aItems = aItems.filter((oItem, index, self) =>
-							index === self.findIndex((t) => (
-								t.PICKING_TASK_ID === oItem.PICKING_TASK_ID
-							))
-						);
+						// aItems = aItems.filter((oItem, index, self) =>
+						// 	index === self.findIndex((t) => (
+						// 		t.PICKING_TASK_ID === oItem.PICKING_TASK_ID
+						// 	))
+						// );
 						resolve(aItems);
 					} else {
 						fetchPickingTaskId().then((sPickingTaskId) => {
@@ -519,56 +518,93 @@ sap.ui.define([
 				oModel.metadataLoaded().then(function () {
 					oModel.setDeferredGroups([sGroupId]);
 
-					items.forEach((oItem) => {
+					// Deduplicate items by PICKING_TASK_ID
+					let uniquePickingTasks = items.filter((oItem, index, self) =>
+						index === self.findIndex((t) => t.PICKING_TASK_ID === oItem.PICKING_TASK_ID)
+					);
+
+					// Create batch remove operations for unique Picking Task IDs
+					uniquePickingTasks.forEach((uniqueTask) => {
 						let sPath = oModel.createKey("/ZRFSFBPCDS0002", {
-							SHIPPING_REQUEST_ID: oItem.SHIPPING_REQUEST_ID,
-							DELIVERY_NR: oItem.DELIVERY_NR,
-							DELIVERY_ITEM_NR: oItem.DELIVERY_ITEM_NR,
-							MATERIAL_NR: oItem.MATERIAL_NR,
-							MATERIAL_DESCRIPTION: oItem.MATERIAL_DESCRIPTION
+							SHIPPING_REQUEST_ID: uniqueTask.SHIPPING_REQUEST_ID,
+							DELIVERY_NR: uniqueTask.DELIVERY_NR,
+							DELIVERY_ITEM_NR: uniqueTask.DELIVERY_ITEM_NR,
+							MATERIAL_NR: uniqueTask.MATERIAL_NR,
+							MATERIAL_DESCRIPTION: uniqueTask.MATERIAL_DESCRIPTION
 						});
-						let sChangeSetId = oItem.SHIPPING_REQUEST_ID + oItem.DELIVERY_NR + oItem.DELIVERY_ITEM_NR + oItem.MATERIAL_NR;
-						// Create batch operation
+						let sChangeSetId = uniqueTask.SHIPPING_REQUEST_ID + uniqueTask.DELIVERY_NR + uniqueTask.DELIVERY_ITEM_NR + uniqueTask.MATERIAL_NR;
+
+						// Create batch remove operation
 						oModel.remove(sPath, {
 							groupId: sGroupId,
-							changeSetId: sChangeSetId, // Unique changeset for each item
-							success: (oData) => {
-								let oMessageParams = {
-									type: "Success",
-									title: that._oBundle.getText("pdtPickTaskIdDeleted", [oItem.PICKING_TASK_ID]),
-									subtitle: that._oBundle.getText("pdtInformShippingRequest", [oItem.SHIPPING_REQUEST_ID]),
-									description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [oItem.DELIVERY_ITEM_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR])
-								};
-								MessagePopoverHook.onSetMessage(oView, oMessageParams);
-								that._bindTable(oItem.SHIPPING_REQUEST_ID);
-								this._refreshPickingTaskView(this.getView())
+							changeSetId: sChangeSetId, // Unique changeset for each Picking Task ID
+							success: () => {
+								// Generate success messages for all items with the same Picking Task ID
+								let relatedItems = items.filter(
+									(oItem) => oItem.PICKING_TASK_ID === uniqueTask.PICKING_TASK_ID
+								);
+								relatedItems.forEach((relatedItem) => {
+									let oMessageParams = {
+										type: "Success",
+										title: that._oBundle.getText("pdtPickTaskIdDeleted", [
+											relatedItem.PICKING_TASK_ID
+										]),
+										subtitle: that._oBundle.getText("pdtInformShippingRequest", [
+											relatedItem.SHIPPING_REQUEST_ID
+										]),
+										description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [
+											relatedItem.DELIVERY_NR,
+											relatedItem.DELIVERY_ITEM_NR,
+											relatedItem.MATERIAL_NR
+										])
+									};
+									MessagePopoverHook.onSetMessage(oView, oMessageParams, "delete");
+								});
+
+								// Update the view after successful deletion
+								that._bindTable(uniqueTask.SHIPPING_REQUEST_ID);
+								that._refreshPickingTaskView(oView)
 									.then((shippingRequestId) => {
-										this._updateDetailsView(shippingRequestId);
+										that._updateDetailsView(shippingRequestId);
 									})
 									.catch((error) => {
 										console.error("Error:", error);
-										// Handle the error
 									});
 								that._oBusyDialog.close();
 							},
 							error: (oError) => {
+								// Generate error message for the specific Picking Task ID
 								let oMessageParams = {
-									type: "Error", // The type of the message
-									title: that._oBundle.getText("pdtErrorRestartingPickingTask", [oItem.PICKING_TASK_ID]), // Dynamic title
-									subtitle: that._oBundle.getText("pdtInformShippingRequest", [oItem.SHIPPING_REQUEST_ID]), // Dynamic subtitle
-									description: typeof oError === "string" ? oError : JSON.stringify(oError) // Ensure the description is a string
+									type: "Error",
+									title: that._oBundle.getText("pdtErrorDeletingPickingTask", [
+										uniqueTask.PICKING_TASK_ID
+									]),
+									subtitle: that._oBundle.getText("pdtInformShippingRequest", [
+										uniqueTask.SHIPPING_REQUEST_ID
+									]),
+									description: typeof oError === "string" ? oError : JSON.stringify(oError)
 								};
+								MessagePopoverHook.onSetMessage(oView, oMessageParams, "delete");
 
-								// Call the MessagePopoverHook to add the error message
-								MessagePopoverHook.onSetMessage(oView, oMessageParams);
-
+								console.error("Error deleting task:", oError);
 								that._oBusyDialog.close();
 							}
 						});
 					});
 
-					this._onSubmitChanges(sGroupId);
-				}.bind(this)).catch((error) => {
+					// Submit batch changes
+					oModel.submitChanges({
+						groupId: sGroupId,
+						success: () => {
+							console.log("Batch delete operation completed successfully.");
+						},
+						error: (oError) => {
+							console.error("Batch delete operation failed:", oError);
+							that._oBusyDialog.close();
+						}
+					});
+				}).catch((error) => {
+					console.error("Metadata load error:", error);
 					that._oBusyDialog.close();
 				});
 			},
@@ -580,54 +616,88 @@ sap.ui.define([
 				let sGroupId = "batchRestartGroup";
 				let that = this;
 				this._oBundle = oView.getModel("i18n").getResourceBundle();
+
 				oModel.metadataLoaded().then(function () {
 					oModel.setDeferredGroups([sGroupId]);
 
-					items.forEach((oItem) => {
+					// Deduplicate items by PICKING_TASK_ID
+					let uniquePickingTasks = items.filter((oItem, index, self) =>
+						index === self.findIndex((t) => t.PICKING_TASK_ID === oItem.PICKING_TASK_ID)
+					);
+
+					// Process each unique Picking Task ID for restart
+					uniquePickingTasks.forEach((uniqueTask) => {
 						let sPath = oModel.createKey("/ZRFSFBPCDS0002", {
-							SHIPPING_REQUEST_ID: oItem.SHIPPING_REQUEST_ID,
-							DELIVERY_NR: oItem.DELIVERY_NR,
-							DELIVERY_ITEM_NR: oItem.DELIVERY_ITEM_NR,
-							MATERIAL_NR: oItem.MATERIAL_NR,
-							MATERIAL_DESCRIPTION: oItem.MATERIAL_DESCRIPTION
+							SHIPPING_REQUEST_ID: uniqueTask.SHIPPING_REQUEST_ID,
+							DELIVERY_NR: uniqueTask.DELIVERY_NR,
+							DELIVERY_ITEM_NR: uniqueTask.DELIVERY_ITEM_NR,
+							MATERIAL_NR: uniqueTask.MATERIAL_NR,
+							MATERIAL_DESCRIPTION: uniqueTask.MATERIAL_DESCRIPTION
 						});
-						let sChangeSetId = oItem.SHIPPING_REQUEST_ID + oItem.DELIVERY_NR + oItem.DELIVERY_ITEM_NR + oItem.MATERIAL_NR;
+						let sChangeSetId = uniqueTask.PICKING_TASK_ID;
 
 						// Create batch operation
-						oModel.update(sPath, oItem, {
+						oModel.update(sPath, uniqueTask, {
 							groupId: sGroupId,
-							changeSetId: sChangeSetId, // Unique changeset for each item
+							changeSetId: sChangeSetId, // Unique changeset for each Picking Task ID
 							success: (oData) => {
-								debugger;
-								let oMessageParams = {
-									type: "Success",
-									title: that._oBundle.getText("pdtPickingTaskRestarted", [oItem.PICKING_TASK_ID, oItem.PICKING_TASK_VERSION + 1]),
-									subtitle: that._oBundle.getText("pdtInformShippingRequest", [oItem.SHIPPING_REQUEST_ID]),
-									description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [oItem.DELIVERY_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR])
-								};
-								MessagePopoverHook.onSetMessage(oView, oMessageParams);
-								that._bindTable(oItem.SHIPPING_REQUEST_ID);
-								this._refreshPickingTaskView(this.getView())
+
+								// Generate success messages for all items with the same Picking Task ID
+								let relatedItems = items.filter(
+									(oItem) => oItem.PICKING_TASK_ID === uniqueTask.PICKING_TASK_ID
+								);
+								relatedItems.forEach((relatedItem) => {
+									let oMessageParams = {
+										type: "Success",
+										title: that._oBundle.getText("pdtPickingTaskRestarted", [
+											relatedItem.PICKING_TASK_ID,
+											parseInt(relatedItem.PICKING_TASK_VERSION) + 1
+										]),
+										subtitle: that._oBundle.getText("pdtInformShippingRequest", [
+											relatedItem.SHIPPING_REQUEST_ID
+										]),
+										description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [
+											relatedItem.DELIVERY_NR,
+											relatedItem.DELIVERY_ITEM_NR,
+											relatedItem.MATERIAL_NR
+										])
+									};
+									MessagePopoverHook.onSetMessage(oView, oMessageParams, "restart");
+								});
+
+								// Update the view and close busy dialog
+								that._bindTable(uniqueTask.SHIPPING_REQUEST_ID);
+								that._refreshPickingTaskView(oView)
 									.then((shippingRequestId) => {
-										this._updateDetailsView(shippingRequestId);
+										that._updateDetailsView(shippingRequestId);
 									})
 									.catch((error) => {
 										console.error("Error:", error);
-										// Handle the error
 									});
 								that._oBusyDialog.close();
 							},
 							error: (oError) => {
+								console.error("Error restarting task:", oError);
 								that._oBusyDialog.close();
 							}
 						});
 					});
-					this._onSubmitChanges(sGroupId);
-				}.bind(this)).catch((error) => {
+
+					// Submit batch changes
+					oModel.submitChanges({
+						groupId: sGroupId,
+						success: () => {
+							console.log("Batch operation completed successfully.");
+						},
+						error: (oError) => {
+							console.error("Batch operation failed:", oError);
+							that._oBusyDialog.close();
+						}
+					});
+				}).catch((error) => {
 					console.error("Metadata load error:", error);
 					that._oBusyDialog.close();
 				});
-
 			},
 
 			_createMultipleItems: function (items) {
@@ -636,47 +706,80 @@ sap.ui.define([
 				let sGroupId = "batchCreateGroup";
 				let that = this;
 				this._oBundle = oView.getModel("i18n").getResourceBundle();
-
+			
 				oModel.metadataLoaded().then(function () {
 					oModel.setDeferredGroups([sGroupId]);
+			
+					// Process all items without deduplication to add all materials
 					items.forEach((oItem) => {
 						let sChangeSetId = oItem.SHIPPING_REQUEST_ID + oItem.DELIVERY_NR + oItem.DELIVERY_ITEM_NR + oItem.MATERIAL_NR;
-
-						// Create batch operation
+			
+						// Create batch operation for each item
 						oModel.createEntry("/ZRFSFBPCDS0002", {
 							groupId: sGroupId,
 							changeSetId: sChangeSetId, // Unique changeset for each item
 							properties: oItem,
 							success: (oData) => {
+								// Generate success message for the item
 								let oMessageParams = {
 									type: "Success",
-									title: that._oBundle.getText("pdtPickingTaskCreated", [oItem.PICKING_TASK_ID]),
-									subtitle: that._oBundle.getText("pdtInformShippingRequest", [oItem.SHIPPING_REQUEST_ID]),
-									description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [oItem.DELIVERY_ITEM_NR, oItem.DELIVERY_ITEM_NR, oItem.MATERIAL_NR])
+									title: that._oBundle.getText("pdtPickingTaskCreated", [
+										oItem.PICKING_TASK_ID
+									]),
+									subtitle: that._oBundle.getText("pdtInformMaterial", [
+										oItem.MATERIAL_NR
+									]),
+									description: that._oBundle.getText("pdtInformDeliveryItemMaterial", [
+										oItem.DELIVERY_NR,
+										oItem.DELIVERY_ITEM_NR,
+										oItem.MATERIAL_NR
+									])
 								};
-								MessagePopoverHook.onSetMessage(oView, oMessageParams);
+								MessagePopoverHook.onSetMessage(oView, oMessageParams, "create");
+			
+								// Update the view for the associated shipping request
 								that._bindTable(oData.SHIPPING_REQUEST_ID);
-								this._refreshPickingTaskView(this.getView())
+								that._refreshPickingTaskView(oView)
 									.then((shippingRequestId) => {
-										this._updateDetailsView(shippingRequestId);
+										that._updateDetailsView(shippingRequestId);
 									})
 									.catch((error) => {
-										console.error("Error:", error);
-										// Handle the error
+										console.error("Error updating details view:", error);
 									});
-
-								that._oBusyDialog.close();
 							},
 							error: (oError) => {
-								that._oBusyDialog.close();
+								// Handle error for this specific item
+								console.error("Error creating entry for item:", oItem, oError);
+								let oMessageParams = {
+									type: "Error",
+									title: that._oBundle.getText("pdtErrorCreatingPickingTask", [
+										oItem.PICKING_TASK_ID
+									]),
+									subtitle: that._oBundle.getText("pdtInformShippingRequest", [
+										oItem.SHIPPING_REQUEST_ID
+									]),
+									description: typeof oError === "string" ? oError : JSON.stringify(oError)
+								};
+								MessagePopoverHook.onSetMessage(oView, oMessageParams, "create");
 							}
 						});
 					});
-
-					this._onSubmitChanges(sGroupId)
-				}.bind(this)).catch((error) => {
+			
+					// Submit all changes in a single batch
+					oModel.submitChanges({
+						groupId: sGroupId,
+						success: () => {
+							console.log("Batch creation operation completed successfully.");
+							that._oBusyDialog.close();
+						},
+						error: (oError) => {
+							console.error("Batch creation operation failed:", oError);
+							that._oBusyDialog.close();
+						}
+					});
+				}).catch((error) => {
+					console.error("Metadata load error:", error);
 					that._oBusyDialog.close();
-
 				});
 			},
 
@@ -723,7 +826,6 @@ sap.ui.define([
 
 			// Update the Details view with the existing data //
 			_updateDetailsView: function (shippingRequestId) {
-				debugger;
 				const oView = this.getView();
 				const oModel = oView.getModel();
 				const oComponent = this.getOwnerComponent();
@@ -811,7 +913,6 @@ sap.ui.define([
 				});
 			},
 			getMaterialInfo: function (product) {
-				debugger;
 				var oView = this.getView();
 				var oModel = oView.getModel();
 				var productId = product.oSource.getText();
@@ -867,8 +968,6 @@ sap.ui.define([
 			},
 
 			getCheckoutConfirmation: function () {
-
-				debugger;
 				var oView = this.getView();
 				var oModel = oView.getModel();
 				var pickingTaskModel = oView.getModel("PickTaskDetail");

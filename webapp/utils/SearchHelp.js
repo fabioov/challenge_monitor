@@ -383,7 +383,6 @@ sap.ui.define([
 
     // Value Help Functions //
     onValueHelpWithSuggestionsOkPress: function (event) {
-      debugger;
       var aTokens = event.getParameter("tokens");
 
       // Set tokens back to the input field

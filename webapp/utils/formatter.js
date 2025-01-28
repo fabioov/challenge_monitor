@@ -7,7 +7,6 @@ sap.ui.define([
     var Formatter = {
 
         dateFormat: function (value) {
-            debugger;
             var oConfiguration = sap.ui.getCore().getConfiguration();
             var oLocale = oConfiguration.getFormatLocale();
             var pattern = "";
