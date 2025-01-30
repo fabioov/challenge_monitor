@@ -12,3 +12,57 @@
     overflow: hidden !important;
 }
 
+.customStatusWidth {
+    width: 100px;
+    /* Set your desired width */
+    display: inline-block;
+    /* Ensure the width is applied correctly */
+}
+
+.statusFormatClass {
+    font-size: 0.7rem;
+    /* Adjust font size */
+    font-weight: bold;
+    /* Make text bold */
+    padding: 0.2rem 0.4rem;
+    /* Add padding */
+    border-radius: 0.25rem;
+    /* Rounded corners */
+    /* background-color: #f0f0f0; */
+    /* Light gray background */
+    /* color: #333; */
+    /* Dark text color */
+    border: 1px solid #ccc;
+    /* Add a border */
+    /* Center the content */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.statusFormatClass.sapMObjStatusSuccess {
+    background-color: #e8f5e9 !important;
+    color: #1b5e20 !important;
+    border: 1px solid #a5d6a7 !important;
+}
+
+.statusFormatClass.sapMObjStatusIndication05 {
+    background-color: #e3f2fd; /* Very light blue for better contrast */
+    border: 1px solid #90caf9; /* Subtle blue border for depth */
+}
+
+.statusFormatClass.sapMObjStatusIndication07 {
+    background-color: #EBEBEB !important;
+    border: 1px solid #3700FD !important;
+}
+
+.statusFormatClass.sapMObjStatusIndication03 {
+    background-color: #F8F8F8 !important;
+    border: 1px solid #D59393 !important;
+}
+
+.statusFormatClass.sapMObjStatusNone {
+    background-color: #f5f5f5 !important;
+    border: 1px solid #e0e0e0 !important;
+}

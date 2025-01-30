@@ -191,12 +191,7 @@
                                         type="Active"
                                     >
                                         <cells>
-                                            <!-- <core:Icon
-                                                id="idIcon"
-                                                src="sap-icon://cart-5"
-                                                size="2em"
-                                            /> -->
-                                                                                        <ObjectStatus
+                                            <ObjectStatus
                                                 text="{
                                                     path: 'Status',
                                                     formatter: '.Formatter.shippingStatus'
@@ -210,6 +205,7 @@
                                                     path: 'Status',
                                                     formatter: '.Formatter.shippingIcon'
                                                 }"
+                                                class="statusFormatClass customStatusWidth"
                                             />
                                             <Text
                                                 id="idText"
@@ -260,7 +256,7 @@
                                             />
                                         </header>
                                     </Column> -->
-                                     <Column
+                                    <Column
                                         id="idColumn16"
                                         width="12em"
                                     >
@@ -281,7 +277,7 @@
                                                 text="{i18n>ShippingRequestId}"
                                             />
                                         </header>
-                                    </Column>                                   
+                                    </Column>
                                     <Column
                                         id="idColumn3"
                                         width="20em"

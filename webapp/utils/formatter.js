@@ -62,6 +62,7 @@ sap.ui.define([
             } catch (error) {
                 return "None"
             }
+
         },
         shippingIcon: function (value) {
             try {
