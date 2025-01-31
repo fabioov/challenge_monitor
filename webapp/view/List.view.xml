@@ -205,7 +205,7 @@
                                                     path: 'Status',
                                                     formatter: '.Formatter.shippingIcon'
                                                 }"
-                                                class="statusFormatClass customStatusWidth"
+                                                class="statusFormatClass"
                                             />
                                             <Text
                                                 id="idText"
