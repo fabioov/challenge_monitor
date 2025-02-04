@@ -109,9 +109,7 @@
                 "transition": "slide",
                 "controlId": "layout",
                 "bypassed": {
-                    "target": [
-                        "notFound"
-                    ]
+                    "target": "notFound"
                 }
             },
             "routes": [
@@ -158,6 +156,11 @@
                     "viewName": "PickTaskDetail",
                     "controlAggregation": "endColumnPages",
                     "clearControlAggregation": true
+                },
+                "notFound": {
+                    "viewId": "notFound",
+                    "viewName": "NotFound",
+                    "transition": "slide"
                 }
             }
         },
