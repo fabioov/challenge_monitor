@@ -99,26 +99,25 @@ sap.ui.define([
                     return true
                 }
             } catch (error) {
-                return ""
+                return false
             }
         },
 
         checkoutConfirmationButtonVisibility: function (value) {
-
+            debugger;
             try {
                 if (value === 'K') {
                     return true
                 } else {
                     return false
                 }
-            }
-            catch (error) {
-                return ""
-            }
+            } catch (error) {
+                return false
 
+            }
         },
 
-        restartPickTaskVisisibility: function (value) {
+        restartPickTaskVisibility: function (value) {
             try {
                 if (value === 'C') {
                     return false
@@ -130,7 +129,7 @@ sap.ui.define([
                     return true
                 }
             } catch (error) {
-                return ""
+                return false
             }
 
         },

@@ -24,7 +24,7 @@
 						/>
 						<m:Text
 							id="_IDGenSubtitle"
-							text="{= ${PickTaskDetail>/PICKING_TASK_ID} ? ${PickTaskDetail>/PICKING_TASK_ID} : ${i18n>ptDhNoPickTask}}"
+							text="{= ${PICKING_TASK_ID} ? ${PICKING_TASK_ID} : ${i18n>ptDhNoPickTask}}"
 							wrapping="true"
 						/>
 					</m:VBox>
@@ -43,14 +43,14 @@
 						/>
 						<m:Title
 							id="_IDGenText22"
-							text="{= ${PickTaskDetail>/PICKING_TASK_ID} ? ${PickTaskDetail>/PICKING_TASK_ID} : ${i18n>ptDhNoPickTask}}"
+							text="{= ${PICKING_TASK_ID} ? ${PICKING_TASK_ID} : ${i18n>ptDhNoPickTask}}"
 						/>
 					</m:FlexBox>
 				</snappedHeading>
 				<snappedTitleOnMobile>
 					<m:Title
 						id="_IDGenTitle3"
-						text="{= ${PickTaskDetail>/PICKING_TASK_ID} ? ${PickTaskDetail>/PICKING_TASK_ID} : ${i18n>ptDhNoPickTask}}"
+						text="{= ${PICKING_TASK_ID} ? ${PICKING_TASK_ID} : ${i18n>ptDhNoPickTask}}"
 					/>
 				</snappedTitleOnMobile>
 				<actions>
@@ -94,7 +94,7 @@
 						importance="Medium"
 						visible="{
 							path: 'PickTaskDetail>/SHIPPING_REQUEST_STATUS',
-							formatter: '.Formatter.restartPickTaskVisisibility'
+							formatter: '.Formatter.restartPickTaskVisibility'
 						}"
 						press="onOpenPickingTaskDialog"
 					/>
@@ -138,7 +138,7 @@
 					<m:Text
 						id="idText9000"
 						text="{
-							path: 'PickTaskDetail>/DELIVERY_NR',
+							path: 'DELIVERY_NR',
 							formatter: '.Formatter.suppressLeadingZeros'
 						}"
 						class="sapUiSmallMarginEnd"
@@ -154,7 +154,7 @@
 					<m:Text
 						id="idText90002"
 						text="{
-							path: 'PickTaskDetail>/DELIVERY_ITEM_NR',
+							path: 'DELIVERY_ITEM_NR',
 							formatter: '.Formatter.suppressLeadingZeros'
 						}"
 					/>
@@ -168,19 +168,19 @@
 					/>
 					<m:Text
 						id="idText90003"
-						text="{PickTaskDetail>/MATERIAL_NR}"
+						text="{MATERIAL_NR}"
 					/>
 				</m:HBox>
 				<m:HBox id="HorizontalLayout001">
 					<!-- Status ObjectStatus -->
 					<m:ObjectStatus
-						text="{= ${PickTaskDetail>/STATUS} === 'Finalizado' ? ${i18n>hdStatusDone} : 
-							(${PickTaskDetail>/STATUS} === 'Em Processamento' ? ${i18n>hdStatusProcessing} : 
-								(${PickTaskDetail>/STATUS} === '' ? 'N/A' : ${i18n>hdStatusRestarted})
+						text="{= ${STATUS} === 'Finalizado' ? ${i18n>hdStatusDone} : 
+							(${STATUS} === 'Em Processamento' ? ${i18n>hdStatusProcessing} : 
+								(${STATUS} === '' ? 'N/A' : ${i18n>hdStatusRestarted})
 							) }"
-						state="{= ${PickTaskDetail>/STATUS} === 'Finalizado' ? 'Success' : ${PickTaskDetail>/STATUS} === 'Em Processamento' ? 'Warning' : 'None'}"
+						state="{= ${STATUS} === 'Finalizado' ? 'Success' : ${STATUS} === 'Em Processamento' ? 'Warning' : 'None'}"
 						id="statusStat0001"
-						icon="{= ${PickTaskDetail>/STATUS} === 'Finalizado' ? 'sap-icon://message-success' : ${PickTaskDetail>/STATUS} === 'Em Processamento' ? 'sap-icon://lateness' : 'sap-icon://project-definition-triangle' }"
+						icon="{= ${STATUS} === 'Finalizado' ? 'sap-icon://message-success' : ${STATUS} === 'Em Processamento' ? 'sap-icon://lateness' : 'sap-icon://project-definition-triangle' }"
 						inverted="true"
 						class="sapMObjectStatusLarge"
 					/>
@@ -211,7 +211,7 @@
 									/>
 									<m:Link
 										id="idText90006"
-										text="{PickTaskDetail>/MATERIAL_NR}"
+										text="{MATERIAL_NR}"
 										press="getMaterialInfo"
 									/>
 								</m:HBox>
@@ -226,7 +226,7 @@
 									/>
 									<m:Text
 										id="idText900026"
-										text="{= ${PickTaskDetail>/MATERIAL_DESCRIPTION} ? ${PickTaskDetail>/MATERIAL_DESCRIPTION} : 'Sem Descrição'}"
+										text="{= ${MATERIAL_DESCRIPTION} ? ${MATERIAL_DESCRIPTION} : 'Sem Descrição'}"
 									/>
 								</m:HBox>
 								<m:HBox id="HorizontalLayout36">
@@ -238,8 +238,8 @@
 									<m:ObjectNumber
 										id="_IDGenObjectNumber1"
 										active="true"
-										number="{PickTaskDetail>/QUANTITY}"
-										unit="{PickTaskDetail>/QUANTITY_UM}"
+										number="{QUANTITY}"
+										unit="{QUANTITY_UM}"
 									/>
 								</m:HBox>
 								<m:HBox id="HorizontalLayout366">
@@ -251,8 +251,8 @@
 									<m:ObjectNumber
 										id="_IDGenObjectNumber16"
 										active="true"
-										number="{PickTaskDetail>/GROSS_WEIGHT}"
-										unit="{PickTaskDetail>/WEIGHT_UM}"
+										number="{GROSS_WEIGHT}"
+										unit="{WEIGHT_UM}"
 									/>
 								</m:HBox>
 							</m:FlexBox>
@@ -268,7 +268,7 @@
 					<ObjectPageSubSection
 						title="{i18n>ptSubTitlePickTask}"
 						titleUppercase="false"
-						visible="{= ${PickTaskDetail>/PICKING_TASK_ID} ? true : false}"
+						visible="{= ${PICKING_TASK_ID} ? true : false}"
 					>
 						<blocks>
 							<m:FlexBox
@@ -284,7 +284,7 @@
 									/>
 									<m:Text
 										id="idText9000264522"
-										text="{PickTaskDetail>/PICKING_TASK_ID}"
+										text="{PICKING_TASK_ID}"
 									/>
 								</m:HBox>
 								<m:HBox id="HBox1234652567">
@@ -295,7 +295,7 @@
 									/>
 									<m:Text
 										id="idText900026453667"
-										text="{PickTaskDetail>/PICKING_TASK_VERSION}"
+										text="{PICKING_TASK_VERSION}"
 									/>
 								</m:HBox>
 								<m:HBox id="HorizontalLayout36890">
@@ -307,8 +307,8 @@
 									<m:ObjectNumber
 										id="_IDGenObjectNumber1890"
 										active="true"
-										number="{PickTaskDetail>/QUANTITY_PICKED}"
-										unit="{PickTaskDetail>/QUANTITY_UM}"
+										number="{QUANTITY_PICKED}"
+										unit="{QUANTITY_UM}"
 									/>
 								</m:HBox>
 								<m:HBox id="HorizontalLayout36890123555">
@@ -319,7 +319,7 @@
 									/>
 									<m:Text
 										id="idText900026452255555555"
-										text="{= ${PickTaskDetail>/PICKING_USER} ? ${PickTaskDetail>/PICKING_USER} : ${i18n>ptDhUserNotAssigned}}"
+										text="{= ${PICKING_USER} ? ${PICKING_USER} : ${i18n>ptDhUserNotAssigned}}"
 									/>
 								</m:HBox>
 								<m:HBox

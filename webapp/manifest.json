@@ -130,7 +130,7 @@
                 },
                 {
                     "name": "PickTaskDetail",
-                    "pattern": "details/{SHIPPING_REQUEST_ID}/picktaskdetail/{DELIVERY_NR}/{DELIVERY_ITEM_NR}/{MATERIAL_NR}/{STATUS}/:appState*:",
+                    "pattern": "details/{SHIPPING_REQUEST_ID}/picktaskdetail/{DELIVERY_NR}/{DELIVERY_ITEM_NR}/{MATERIAL_NR}/:appState*:",
                     "target": [
                         "list",
                         "details",

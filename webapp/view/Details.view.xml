@@ -16,7 +16,7 @@
 			<ObjectPageHeader
 				id="ObjectPageHeader"
 				objectTitle="{i18n>appTitle}"
-				objectSubtitle="{Header>/ShippingRequestId}"
+				objectSubtitle="{ShippingRequestId}"
 			>
 				<actions>
 					<ObjectPageHeaderActionButton
@@ -53,7 +53,7 @@
 					<m:Text
 						id="idText9000"
 						text="{
-							path: 'Header>/CreationDate',
+							path: 'CreationDate',
 							formatter: '.Formatter.dateFormat'
 						}"
 					/>
@@ -66,7 +66,7 @@
 					/>
 					<m:Text
 						id="Label4"
-						text="{Header>/CreatedBy}"
+						text="{CreatedBy}"
 					/>
 				</m:HBox>
 				<m:HBox id="HorizontalLayout3">
@@ -77,7 +77,7 @@
 					/>
 					<m:Text
 						id="Label5"
-						text="{Header>/CustomerId}"
+						text="{CustomerId}"
 					/>
 				</m:HBox>
 				<m:HBox id="HorizontalLayout21">
@@ -88,7 +88,7 @@
 					/>
 					<m:Text
 						id="Label51"
-						text="{Header>/PlantOrigin}"
+						text="{PlantOrigin}"
 					/>
 				</m:HBox>
 			</m:FlexBox>
@@ -105,7 +105,7 @@
 					/>
 					<m:Text
 						id="Label66"
-						text="{Header>/CarrierId}"
+						text="{CarrierId}"
 					/>
 				</m:HBox>
 				<m:HBox id="Horizontalid1">
@@ -116,7 +116,7 @@
 					/>
 					<m:Text
 						id="Label666"
-						text="{Header>/DriverName}"
+						text="{DriverName}"
 					/>
 				</m:HBox>
 				<m:HBox id="Horizontalid10">
@@ -127,7 +127,7 @@
 					/>
 					<m:Text
 						id="Label6666"
-						text="{Header>/VehicleType}"
+						text="{VehicleType}"
 					/>
 				</m:HBox>
 				<m:HBox id="Horizontalid100">
@@ -140,16 +140,16 @@
 						id="_IDGenObjectNumber100"
 						number="{
 							parts: [{
-								path: 'Header>/TollAmount'
+								path: 'TollAmount'
 							}, {
-								path: 'Header>/CurrencyCode'
+								path: 'CurrencyCode'
 							}],
 							type: 'sap.ui.model.type.Currency',
 							formatOptions: {
 								showMeasure: false
 							}
 						}"
-						unit="{Header>/CurrencyCode}"
+						unit="{CurrencyCode}"
 						state="Warning"
 					/>
 				</m:HBox>
@@ -161,7 +161,7 @@
 					/>
 					<m:Text
 						id="Label66666666"
-						text="{Header>/LicensePlate}"
+						text="{LicensePlate}"
 					/>
 				</m:HBox>
 			</m:FlexBox>
@@ -179,7 +179,7 @@
 					/>
 					<m:Text
 						id="Label6667678"
-						text="{Header>/DestinationAddress}"
+						text="{DestinationAddress}"
 					/>
 				</m:HBox>
 				<m:HBox id="Horizontalid156789">
@@ -190,7 +190,7 @@
 					/>
 					<m:Text
 						id="Label6667678098"
-						text="{Header>/DestinationDistrict}"
+						text="{DestinationDistrict}"
 					/>
 				</m:HBox>
 				<m:HBox id="Horizontalid156745">
@@ -201,7 +201,7 @@
 					/>
 					<m:Text
 						id="Label6667678022"
-						text="{Header>/DestinationCity}"
+						text="{DestinationCity}"
 					/>
 				</m:HBox>
 				<m:HBox id="Horizontalid100045">
@@ -212,7 +212,7 @@
 					/>
 					<m:Text
 						id="Label6667000022"
-						text="{Header>/DestinationState}/{Header>/DestinationCountry}"
+						text="{DestinationState}/{DestinationCountry}"
 					/>
 				</m:HBox>
 				<m:HBox id="Horizontalid15644">
@@ -223,7 +223,7 @@
 					/>
 					<m:Text
 						id="Label66676345"
-						text="{Header>/DestinationZipcode}"
+						text="{DestinationZipcode}"
 					/>
 				</m:HBox>
 			</m:FlexBox>
@@ -234,16 +234,16 @@
 			>
 				<m:ObjectStatus
 					text="{
-						path: 'Header>/Status',
+						path: 'Status',
 						formatter: '.Formatter.shippingStatus'
 					}"
 					state="{
-						path: 'Header>/Status',
+						path: 'Status',
 						formatter: '.Formatter.shippingState'
 					}"
 					id="status100"
 					icon="{
-						path: 'Header>/Status',
+						path: 'Status',
 						formatter: '.Formatter.shippingIcon'
 					}"
 					inverted="true"
@@ -276,7 +276,7 @@
 								mode="SingleSelectMaster"
 								selectionChange="onSelectedItem"
 								id="itemsTable"
-								items="{Details>/results}"
+								items="{to_Items}"
 								class="sapFDynamicPageAlignContent"
 								updateFinished=".onUpdateFinished"
 							>
@@ -345,31 +345,31 @@
 										<m:cells>
 											<core:Icon
 												id="IconStatus"
-												src="{= ${Details>STATUS} === 'Finalizado' ? 'sap-icon://message-success' : ${Details>STATUS} === 'Em Processamento' ? 'sap-icon://lateness' : 'sap-icon://project-definition-triangle' }"
-												color="{= ${Details>STATUS} === 'Finalizado' ? 'green' : ${Details>STATUS} === 'Em Processamento' ? 'orange' : 'gray' }"
+												src="{= ${STATUS} === 'Finalizado' ? 'sap-icon://message-success' : ${STATUS} === 'Em Processamento' ? 'sap-icon://lateness' : 'sap-icon://project-definition-triangle' }"
+												color="{= ${STATUS} === 'Finalizado' ? 'green' : ${Details>STATUS} === 'Em Processamento' ? 'orange' : 'gray' }"
 												size="1rem"
 											/>
 											<m:Text
 												id="Text03265"
-												text="{Details>PICKING_TASK_ID}"
+												text="{PICKING_TASK_ID}"
 											/>
 											<m:Text
 												id="Text0"
 												text="{
-													path: 'Details>DELIVERY_NR',
+													path: 'DELIVERY_NR',
 													formatter: '.Formatter.suppressLeadingZeros'
 												}"
 											/>
 											<m:Text
 												id="Text1"
 												text="{
-													path: 'Details>DELIVERY_ITEM_NR',
+													path: 'DELIVERY_ITEM_NR',
 													formatter: '.Formatter.suppressLeadingZeros'
 												}"
 											/>
 											<m:Text
 												id="Text2"
-												text="{Details>MATERIAL_NR}"
+												text="{MATERIAL_NR}"
 											/>
 										</m:cells>
 									</m:ColumnListItem>
