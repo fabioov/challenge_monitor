@@ -165,7 +165,7 @@ sap.ui.define(
             },
             error: function (oError) {
               console.error("Error fetching shipping status:", oError);
-              if (callback) callback(null); 
+              if (callback) callback(null);
             },
           });
         },
@@ -221,9 +221,8 @@ sap.ui.define(
 
           // Get the List view by its ID
           let oListView = oComponent.byId("details");
-          let oModel = this.getModel("PickTaskDetail");
-          let oData = oModel.getData();
-          let sShippingRequestId = oData.SHIPPING_REQUEST_ID;
+          let oView = this.getView();
+          let sShippingRequestId = oView.getElementBinding().getBoundContext().getObject().SHIPPING_REQUEST_ID;
 
           if (oListView) {
             // Find the table in the other view by its ID
@@ -253,7 +252,10 @@ sap.ui.define(
           let oModel = oView.getModel();
           debugger;
 
-          let selectedKeys = oView.getElementBinding().getBoundContext().getObject();
+          let selectedKeys = oView
+            .getElementBinding()
+            .getBoundContext()
+            .getObject();
           let pickingTaskId = selectedKeys.PICKING_TASK_ID;
           let deliveryNr = selectedKeys.DELIVERY_NR;
           let deliveryItemNr = selectedKeys.DELIVERY_ITEM_NR;
@@ -1127,12 +1129,17 @@ sap.ui.define(
         },
 
         getCheckoutConfirmation: function () {
+          debugger;
           var oView = this.getView();
           var oModel = oView.getModel();
-          var pickingTaskModel = oView.getModel("PickTaskDetail");
-          var pickingTaskId = pickingTaskModel.getData().PICKING_TASK_ID;
-          var pickingTaskVersion =
-            pickingTaskModel.getData().PICKING_TASK_VERSION;
+          var pickingTaskId = oView
+            .getElementBinding()
+            .getBoundContext()
+            .getObject().PICKING_TASK_ID;
+          var pickingTaskVersion = oView
+            .getElementBinding()
+            .getBoundContext()
+            .getObject().PICKING_TASK_VERSION;
 
           var aFilters = [
             new Filter("PickingTaskId", FilterOperator.EQ, pickingTaskId),
@@ -1149,15 +1156,19 @@ sap.ui.define(
             filters: [oFilter],
             success: function (oData) {
               if (oData.results.length > 0) {
+                // Add RowIndex to each item
+                var aResultsWithIndex = oData.results.map((item, index) => ({
+                  ...item,
+                  RowIndex: index + 1,
+                }));
+
                 // Create a new model for Material Info and set it to the view
                 var oCheckoutConfirmationModel = new JSONModel();
-                oCheckoutConfirmationModel.setData(oData.results);
+                oCheckoutConfirmationModel.setData({results: aResultsWithIndex});
                 oView.setModel(
                   oCheckoutConfirmationModel,
                   "CheckoutConfirmation"
                 );
-                console.log("Checkout Confirmation Data:", oData.results);
-
                 // Correctly bind 'this' for controller context
                 this._openCheckoutConfirmationDialog();
               }

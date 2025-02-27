@@ -226,7 +226,7 @@
 									/>
 									<m:Text
 										id="idText900026"
-										text="{= ${MATERIAL_DESCRIPTION} ? ${MATERIAL_DESCRIPTION} : 'Sem Descrição'}"
+										text="{= ${MATERIAL_DESCRIPTION} ? ${MATERIAL_DESCRIPTION} : ${i18n>ptSsMaterialNoDescription}}"
 									/>
 								</m:HBox>
 								<m:HBox id="HorizontalLayout36">

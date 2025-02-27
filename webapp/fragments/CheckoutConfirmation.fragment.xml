@@ -17,31 +17,38 @@
             <Table
                 id="checkoutConfirmationTable"
                 alternateRowColors="true"
-                items="{CheckoutConfirmation>/}"
+                items="{CheckoutConfirmation>/results}"
                 width="100%"
+                growing="true"
+                growingThreshold="100"
+                growingScrollToLoad="true"
             >
                 <columns>
+                    <Column id="columnRowIndex">
+                        <Text id="_IDGenText30" text="{i18n>ccRowIndex}" />
+                    </Column>
                     <Column id="columnShippingRequestId">
-                        <Text text="{i18n>ccShippingRequestId}" />
+                        <Text id="_IDGenText31" text="{i18n>ccShippingRequestId}" />
                     </Column>
                     <Column id="columnConfirmationId">
-                        <Text text="{i18n>ccConfirmationId}" />
+                        <Text id="_IDGenText32" text="{i18n>ccConfirmationId}" />
                     </Column>
                     <Column id="columnConfirmationRead">
-                        <Text text="{i18n>ccConfirmationRead}" />
+                        <Text id="_IDGenText33" text="{i18n>ccConfirmationRead}" />
                     </Column>
                     <Column id="columnMaterial">
-                        <Text text="{i18n>ccMaterial}" />
+                        <Text id="_IDGenText34" text="{i18n>ccMaterial}" />
                     </Column>
                     <Column id="columnQuantity">
-                        <Text text="{i18n>ccQuantity}" />
+                        <Text id="_IDGenText35" text="{i18n>ccQuantity}" />
                     </Column>
                 </columns>
                 <items>
-                    <ColumnListItem>
-                        <Text text="{CheckoutConfirmation>ShippingRequestId}" />
-                        <Text text="{CheckoutConfirmation>ConfirmationId}" />
-                        <c:Icon
+                    <ColumnListItem id="_IDGenColumnListItem">
+                        <Text id="_IDGenText360" text="{CheckoutConfirmation>RowIndex}" />
+                        <Text id="_IDGenText36" text="{CheckoutConfirmation>ShippingRequestId}" />
+                        <Text id="_IDGenText37" text="{CheckoutConfirmation>ConfirmationId}" />
+                        <c:Icon id="_IDGenIcon"
                             src="{
                                 path: 'CheckoutConfirmation>ConfirmationRead',
                                 formatter: '.Formatter.confirmationReadIcon'
@@ -52,8 +59,8 @@
                                 formatter: '.Formatter.confirmationReadColor'
                             }"
                         />
-                        <Text text="{CheckoutConfirmation>Material}" />
-                        <ObjectNumber
+                        <Text id="_IDGenText38" text="{CheckoutConfirmation>Material}" />
+                        <ObjectNumber id="_IDGenObjectNumber4"
                             number="{CheckoutConfirmation>Quantity}"
                             unit="{CheckoutConfirmation>Uom}"
                         />

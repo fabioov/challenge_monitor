@@ -161,12 +161,13 @@ sap.ui.define([
         },
 
         enableDisableCheckBox: function (sPickingTaskId) {
+            debugger;
             var oBundle = this.getView().getModel("i18n").getResourceBundle();
             let oButtonActionModel = this.getView().getModel('buttonActionModel');
             // Check if oButtonActionModel.action equals 'Create' and sPickingTaskId exists
-            if (oButtonActionModel && oButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnCreate") && sPickingTaskId) {
+            if (oButtonActionModel && oButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnCreate") && sPickingTaskId !== "N/A") {
                 return false; // Enable the checkbox
-            } else if ((oButtonActionModel && oButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnRestart") || oButtonActionModel && oButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnDelete")) && !sPickingTaskId) {
+            } else if ((oButtonActionModel && oButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnRestart") || oButtonActionModel && oButtonActionModel.getProperty('/action') === oBundle.getText("ptBtnDelete")) && sPickingTaskId === "N/A") {
                 return false; // Disable the checkbox
             } else {
                 return true;
