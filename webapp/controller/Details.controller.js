@@ -611,11 +611,9 @@ sap.ui.define(
 
           let oModel = oView.getModel();
 
-          var sPath = oModel.createKey("/ZRFSFBPCDS0001", {
+          let sPath = oModel.createKey("/ZRFSFBPCDS0001", {
             ShippingRequestId: shippingRequestId,
           });
-
-          var that = this;
 
           oView.bindElement({
             path: sPath,
@@ -627,25 +625,6 @@ sap.ui.define(
               },
               dataReceived: function (oData) {
                 oView.setBusy(false);
-
-                const appStateModel = that
-                  .getOwnerComponent()
-                  .getModel("appStateModel");
-                const modelAppState = appStateModel.oData.appState;
-                const isClicked = appStateModel.oData.clicked;
-                const modelAppStateDecompressed = modelAppState
-                  ? that.decompressAndDecode(modelAppState)
-                  : {};
-
-                if (that._shouldRestoreState(isClicked)) {
-                  that._handleRestoreState();
-                } else {
-                  that._handleSaveState(
-                    appStateModel,
-                    modelAppState,
-                    modelAppStateDecompressed
-                  );
-                }
               },
               error: function (oError) {
                 oView.setBusy(false);
@@ -653,16 +632,17 @@ sap.ui.define(
               },
             },
           });
-
-          
         },
 
         onPrintForms: function () {
-          const oModel = this.getView().getModel("Details");
-          this.onPrintPress(
-            this.getView(),
-            oModel.getData().results[0].SHIPPING_REQUEST_ID
-          );
+          let oView = this.getView();
+
+          let shippingRequestId =
+            "0000000" +
+            oView.getElementBinding().getBoundContext().getObject()
+              .ShippingRequestId;
+
+          this.onPrintPress(this.getView(), shippingRequestId);
         },
       }
     );
